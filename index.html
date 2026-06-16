@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P5 FAB1 프로젝트 관리 시스템</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <!-- Panzoom -->
+    <script src="https://unpkg.com/@panzoom/panzoom@4.5.1/dist/panzoom.min.js"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
+        
+        body { 
+            font-family: 'Inter', 'Noto Sans KR', sans-serif; 
+            background-color: #f4f7f9; 
+            color: #1e293b;
+        }
+        
+        /* 부드럽고 고급스러운 카드 호버 효과 */
+        .kpi-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04); }
+        
+        /* 커스텀 스크롤바 */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.7; transition: 0.2s; transform: scale(1.2); }
+        input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; color: #2563eb; }
+        
+        .quick-btn { transition: all 0.2s ease-in-out; }
+        .quick-btn:hover { background-color: #f8fafc; border-color: #cbd5e1; }
+        .quick-btn:hover i { transform: scale(1.15) translateY(-2px); }
+        
+        /* 탭 디자인 강화 */
+        .tab-btn { position: relative; transition: all 0.2s ease; font-size: 1.05rem; }
+        .tab-btn.active { color: #1d4ed8; font-weight: 700; border-bottom-color: #1d4ed8; background-color: white; }
+        .tab-btn:hover:not(.active) { background-color: #f1f5f9; color: #334155; }
+        
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        #aerial-container { overflow: hidden; cursor: grab; }
+        #aerial-container:active { cursor: grabbing; }
+
+        /* 공통 섹션 그림자 통일 */
+        .section-box { background-color: white; border-radius: 1rem; padding: 1.75rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.02); border: 1px solid #e2e8f0; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- 상단 헤더 -->
+    <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-[1400px] mx-auto px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="bg-blue-600 p-2.5 rounded-xl shadow-inner">
+                    <i class="fa-solid fa-layer-group text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight">P5 FAB1 프로젝트 관리 시스템</h1>
+                    <p class="text-sm text-slate-400 font-medium mt-0.5">Infrastructure Technology Dashboard</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-sm bg-emerald-500/10 text-emerald-400 px-4 py-2 rounded-full border border-emerald-500/20 font-bold flex items-center shadow-sm">
+                    <i class="fa-solid fa-check-circle mr-2"></i> 시스템 정상 가동 중
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-[1400px] mx-auto px-6 lg:px-8 py-8 space-y-8">
+
+        <!-- 🔗 상단 퀵 링크 버튼 9개 -->
+        <section>
+            <div class="grid grid-cols-3 lg:grid-cols-9 gap-3">
+                <a href="#" target="_blank" class="quick-btn bg-white border border-slate-200 shadow-sm rounded-xl px-3 py-4 flex flex-col items-center justify-center text-center">
+                    <i class="fa-solid fa-sitemap text-blue-500 text-2xl mb-2.5"></i><span class="text-xs lg:text-sm font-bold text-slate-700">조직도</span>
+                </a>
+                <a href="#" target="_blank" class="quick-btn bg-white border border-slate-200 shadow-sm rounded-xl px-3 py-4 flex flex-col items-center justify-center text-center">
+                    <i class="fa-solid fa-plane text-indigo-500 text-2xl mb-2.5"></i><span class="text-xs lg:text-sm font-bold text-slate-700">항공사진</span>
+                </a>
+                <a href="#" target="_blank" class="quick-btn bg-white border border-slate-200 shadow-sm rounded-xl px-3 py-4 flex flex-col items-center justify-center text-center">
+                    <i class="fa-regular fa-calendar-days text-emerald-500 text-2xl mb-2.5"></i><span class="text-xs lg:text-sm font-bold text-slate-700">당직근무표</span>
+                </a>
+                <a href="#" target="_blank" class="quick-btn bg-white border border-slate-200 shadow-sm rounded-xl px-3 py-4 flex flex-col items-center justify-center text-center">
+                    <i class="fa-solid fa-file-signature text-amber-500 text-2xl mb-2.5"></i><span class="text-xs lg:text-sm font-bold text-slate-700">당직일지(평일)</span>
+                </a>
+                <a href="#" target="_blank" class="quick-btn bg-white border border-slate-200 shadow-sm rounded-xl px-3 py-4 flex flex-col items-center justify-center text-center">
+                    <i class="fa-solid fa-file-contract text-rose-500 text-2xl mb-2.5"></i><span class="text-xs lg:text-sm font-bold text-slate-700">당직일지(휴일)</span>
+                </a>
+                <a href="#" target="_blank" class="quick-btn bg-white border border-slate-200 shadow-sm rounded-xl px-3 py-4 flex flex-col items-center justify-center text-center">
+                    <i class="fa-solid fa-list-check text-teal-500 text-2xl mb-2.5"></i><span class="text-xs lg:text-sm font-bold text-slate-700">휴일작업 List</span>
+                </a>
+                <a href="#" target="_blank" class="quick-btn bg-white border border-slate-200 shadow-sm rounded-xl px-3 py-4 flex flex-col items-center justify-center text-center">
+                    <i class="fa-solid fa-chart-gantt text-cyan-500 text-2xl mb-2.5"></i><span class="text-xs lg:text-sm font-bold text-slate-700">관리기준공정표</span>
+                </a>
+                <a href="#" target="_blank" class="quick-btn bg-white border border-slate-200 shadow-sm rounded-xl px-3 py-4 flex flex-col items-center justify-center text-center">
+                    <i class="fa-solid fa-cube text-slate-500 text-2xl mb-2.5"></i><span class="text-xs lg:text-sm font-bold text-slate-700">골조 3D(FAB)</span>
+                </a>
+                <a href="#" target="_blank" class="quick-btn bg-white border border-slate-200 shadow-sm rounded-xl px-3 py-4 flex flex-col items-center justify-center text-center">
+                    <i class="fa-solid fa-cubes text-slate-600 text-2xl mb-2.5"></i><span class="text-xs lg:text-sm font-bold text-slate-700">골조 3D(복합)</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- 📑 7개 탭 네비게이션 -->
+        <div class="border-b-2 border-slate-300 flex overflow-x-auto hide-scrollbar pt-2">
+            <button onclick="switchTab('tab-summary')" class="tab-btn min-w-[120px] px-5 py-3.5 text-slate-500 border-b-[3px] border-transparent rounded-t-lg">요약</button>
+            <button onclick="switchTab('tab-manpower')" class="tab-btn active min-w-[120px] px-5 py-3.5 text-slate-500 border-b-[3px] border-transparent rounded-t-lg">인력</button>
+            <button onclick="switchTab('tab-expected')" class="tab-btn min-w-[120px] px-5 py-3.5 text-slate-500 border-b-[3px] border-transparent rounded-t-lg">예상인력</button>
+            <button onclick="switchTab('tab-progress')" class="tab-btn min-w-[120px] px-5 py-3.5 text-slate-500 border-b-[3px] border-transparent rounded-t-lg">공사진행률</button>
+            <button onclick="switchTab('tab-schedule')" class="tab-btn min-w-[120px] px-5 py-3.5 text-slate-500 border-b-[3px] border-transparent rounded-t-lg">일정</button>
+            <button onclick="switchTab('tab-ut')" class="tab-btn min-w-[120px] px-5 py-3.5 text-slate-500 border-b-[3px] border-transparent rounded-t-lg">UT 턴온</button>
+            <button onclick="switchTab('tab-handover')" class="tab-btn min-w-[120px] px-5 py-3.5 text-slate-500 border-b-[3px] border-transparent rounded-t-lg">인수인계</button>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 탭 1: 요약 (Summary) -->
+        <!-- ========================================== -->
+        <div id="tab-summary" class="tab-content space-y-8 hidden">
+            <section class="section-box">
+                <div class="border-b border-slate-200 pb-5 mb-6">
+                    <h2 class="text-xl font-bold text-slate-900 flex items-center space-x-2">
+                        <span class="h-5 w-1.5 bg-purple-600 rounded-full mr-2"></span>
+                        📅 이번 달 (<span id="sum_exp_month" class="text-purple-600 mx-1"></span>) 예상 인력 요약
+                    </h2>
+                    <p class="text-sm text-slate-500 mt-1.5 ml-3.5">현재 월 기준 시공사 및 Phase별 투입 예상 인원</p>
+                </div>
+
+                <div class="mb-8">
+                    <h3 class="text-base font-bold text-slate-800 mb-4 ml-1"><i class="fa-solid fa-building mr-2 text-slate-400"></i>시공사별 예상 인력</h3>
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-5">
+                        <div class="kpi-card bg-gradient-to-br from-purple-900 to-indigo-800 text-white rounded-xl p-5">
+                            <div class="text-sm font-semibold text-purple-200">총 예상 인력 (전체)</div>
+                            <div class="mt-3 text-4xl font-extrabold"><span id="sum_exp_total">0</span><span class="text-base font-medium ml-1.5 text-purple-200">명</span></div>
+                        </div>
+                        <div class="kpi-card bg-slate-50 rounded-xl p-5 border border-slate-200">
+                            <div class="text-sm font-semibold text-slate-500">삼성물산</div>
+                            <div class="mt-3 text-3xl font-extrabold text-blue-700"><span id="sum_exp_mulsan">0</span><span class="text-base font-medium ml-1.5 text-slate-500">명</span></div>
+                        </div>
+                        <div class="kpi-card bg-slate-50 rounded-xl p-5 border border-slate-200">
+                            <div class="text-sm font-semibold text-slate-500">삼성E&A</div>
+                            <div class="mt-3 text-3xl font-extrabold text-amber-600"><span id="sum_exp_ea">0</span><span class="text-base font-medium ml-1.5 text-slate-500">명</span></div>
+                        </div>
+                        <div class="kpi-card bg-slate-50 rounded-xl p-5 border border-slate-200">
+                            <div class="text-sm font-semibold text-slate-500">삼성중공업</div>
+                            <div class="mt-3 text-3xl font-extrabold text-rose-600"><span id="sum_exp_heavy">0</span><span class="text-base font-medium ml-1.5 text-slate-500">명</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-base font-bold text-slate-800 mb-4 ml-1"><i class="fa-solid fa-layer-group mr-2 text-slate-400"></i>Phase별 예상 인력</h3>
+                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                        <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                            <h4 class="text-sm font-extrabold text-slate-800 mb-4 border-b border-slate-100 pb-2">FAB 1</h4>
+                            <div class="grid grid-cols-3 sm:grid-cols-6 gap-3">
+                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">골조</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_f1g">0</div></div>
+                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph1</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_f1p1">0</div></div>
+                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph2</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_f1p2">0</div></div>
+                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph3</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_f1p3">0</div></div>
+                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph4</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_f1p4">0</div></div>
+                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph5</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_f1p5">0</div></div>
+                            </div>
+                        </div>
+                        <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                            <h4 class="text-sm font-extrabold text-slate-800 mb-4 border-b border-slate-100 pb-2">FAB 2</h4>
+                            <div class="grid grid-cols-3 sm:grid-cols-7 gap-3">
+                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">골조</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_f2g">0</div></div>
+                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph1</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_f2p1">0</div></div>
+                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph2</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_f2p2">0</div></div>
+                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph3</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_f2p3">0</div></div>
+                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph4</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_f2p4">0</div></div>
+                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph5</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_f2p5">0</div></div>
+                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph6</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_f2p6">0</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section-box">
+                <div class="border-b border-slate-200 pb-5 mb-6 flex justify-between items-end">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900 flex items-center space-x-2">
+                            <span class="h-5 w-1.5 bg-indigo-600 rounded-full mr-2"></span>
+                            🛰️ 프로젝트 항공사진 뷰어
+                        </h2>
+                        <p class="text-sm text-slate-500 mt-1.5 ml-3.5">마우스 휠 스크롤로 확대/축소하고, 클릭 후 드래그하여 자유롭게 이동하세요.</p>
+                    </div>
+                    <button onclick="resetAerialZoom()" class="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg transition font-bold shadow-sm border border-slate-200">
+                        <i class="fa-solid fa-compress mr-1.5"></i>원본 크기
+                    </button>
+                </div>
+                <div id="aerial-container" class="w-full h-[600px] bg-slate-200 rounded-xl border border-slate-300 relative shadow-inner">
+                    <img id="aerial-image" src="https://images.unsplash.com/photo-1541888086425-d81bb19240f5?auto=format&fit=crop&w=1600&q=80" alt="항공사진 이미지" class="w-full h-full object-cover">
+                </div>
+            </section>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 탭 2: 인력 (Manpower) -->
+        <!-- ========================================== -->
+        <div id="tab-manpower" class="tab-content space-y-8 block">
+            <section class="section-box">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-5 mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900 flex items-center space-x-2">
+                            <span class="h-5 w-1.5 bg-blue-600 rounded-full mr-2"></span>
+                            📊 일별 인력 투입 현황
+                        </h2>
+                        <p class="text-sm text-slate-500 mt-1.5 ml-3.5">건물별 세부 및 근무형태별 분포 지표</p>
+                    </div>
+                    <div class="flex items-center space-x-2 mt-4 sm:mt-0 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+                        <button id="prevDayBtn" class="bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 shadow-sm w-10 h-10 rounded-lg flex items-center justify-center transition hover:text-blue-600"><i class="fa-solid fa-chevron-left text-base"></i></button>
+                        <div class="relative flex items-center bg-white border border-slate-200 shadow-sm rounded-lg px-3 h-10">
+                            <input type="date" id="dailyDatePicker" class="bg-transparent text-base font-bold text-slate-800 outline-none cursor-pointer w-[135px]">
+                        </div>
+                        <button id="nextDayBtn" class="bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 shadow-sm w-10 h-10 rounded-lg flex items-center justify-center transition hover:text-blue-600"><i class="fa-solid fa-chevron-right text-base"></i></button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 lg:grid-cols-5 gap-5">
+                    <div class="kpi-card bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-xl p-5 shadow-md">
+                        <div class="flex justify-between items-start text-slate-300">
+                            <span class="text-sm font-semibold tracking-wider">총 투입 인원</span>
+                            <div class="bg-white/10 p-2 rounded-lg text-white"><i class="fa-solid fa-users text-sm"></i></div>
+                        </div>
+                        <div class="mt-4 flex items-baseline space-x-1.5">
+                            <span id="kpiTotal" class="text-4xl font-extrabold tracking-tight">0</span><span class="text-sm text-slate-400 font-medium">명</span>
+                        </div>
+                        <div class="mt-3 text-sm font-medium flex items-center text-slate-400" id="trendTotal">-</div>
+                    </div>
+                    <div class="kpi-card bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
+                        <div class="flex justify-between items-start text-slate-500">
+                            <span class="text-sm font-semibold">삼성물산</span>
+                            <div class="bg-blue-50 p-2 rounded-lg text-blue-600"><i class="fa-solid fa-building-shield text-sm"></i></div>
+                        </div>
+                        <div class="mt-4 flex items-baseline space-x-1.5">
+                            <span id="kpiMulsan" class="text-3xl font-extrabold text-slate-800">0</span><span class="text-sm text-slate-500 font-medium">명</span>
+                        </div>
+                        <div class="mt-3 text-sm font-medium flex items-center" id="trendMulsan">-</div>
+                    </div>
+                    <div class="kpi-card bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
+                        <div class="flex justify-between items-start text-slate-500">
+                            <span class="text-sm font-semibold">복합동</span>
+                            <div class="bg-indigo-50 p-2 rounded-lg text-indigo-600"><i class="fa-solid fa-cubes text-sm"></i></div>
+                        </div>
+                        <div class="mt-4 flex items-baseline space-x-1.5">
+                            <span id="kpiComplex" class="text-3xl font-extrabold text-slate-800">0</span><span class="text-sm text-slate-500 font-medium">명</span>
+                        </div>
+                        <div class="mt-3 text-sm font-medium flex items-center" id="trendComplex">-</div>
+                    </div>
+                    <div class="kpi-card bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
+                        <div class="flex justify-between items-start text-slate-500">
+                            <span class="text-sm font-semibold">그린동</span>
+                            <div class="bg-emerald-50 p-2 rounded-lg text-emerald-600"><i class="fa-solid fa-leaf text-sm"></i></div>
+                        </div>
+                        <div class="mt-4 flex items-baseline space-x-1.5">
+                            <span id="kpiGreen" class="text-3xl font-extrabold text-slate-800">0</span><span class="text-sm text-slate-500 font-medium">명</span>
+                        </div>
+                        <div class="mt-3 text-sm font-medium flex items-center" id="trendGreen">-</div>
+                    </div>
+                    <div class="kpi-card bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
+                        <div class="flex justify-between items-start text-slate-500">
+                            <span class="text-sm font-semibold">변전소</span>
+                            <div class="bg-amber-50 p-2 rounded-lg text-amber-600"><i class="fa-solid fa-bolt text-sm"></i></div>
+                        </div>
+                        <div class="mt-4 flex items-baseline space-x-1.5">
+                            <span id="kpiSubstation" class="text-3xl font-extrabold text-slate-800">0</span><span class="text-sm text-slate-500 font-medium">명</span>
+                        </div>
+                        <div class="mt-3 text-sm font-medium flex items-center" id="trendSubstation">-</div>
+                    </div>
+                </div>
+
+                <div class="mt-6 bg-slate-50 rounded-xl p-4 border border-slate-200 flex flex-wrap items-center justify-around text-sm text-slate-600 font-medium shadow-inner">
+                    <div class="px-3 py-1.5"><span class="text-slate-400 mr-1.5">주간(8h):</span> <span id="wtDay" class="text-slate-800 font-extrabold">0명 (0%)</span></div>
+                    <div class="px-3 py-1.5"><span class="text-slate-400 mr-1.5">연장(10h):</span> <span id="wtExt" class="text-slate-800 font-extrabold">0명 (0%)</span></div>
+                    <div class="px-3 py-1.5"><span class="text-slate-400 mr-1.5">야간(12h):</span> <span id="wtNight" class="text-slate-800 font-extrabold">0명 (0%)</span></div>
+                    <div class="px-3 py-1.5"><span class="text-slate-400 mr-1.5">1교대(8h):</span> <span id="wtS1" class="text-slate-800 font-extrabold">0명 (0%)</span></div>
+                    <div class="px-3 py-1.5"><span class="text-slate-400 mr-1.5">2교대(8h):</span> <span id="wtS2" class="text-slate-800 font-extrabold">0명 (0%)</span></div>
+                    <div class="px-3 py-1.5"><span class="text-slate-400 mr-1.5">철야(8h):</span> <span id="wtOver" class="text-slate-800 font-extrabold">0명 (0%)</span></div>
+                </div>
+            </section>
+
+            <section class="section-box">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-5 mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900 flex items-center space-x-2">
+                            <span class="h-5 w-1.5 bg-indigo-600 rounded-full mr-2"></span>
+                            ⏳ 5일 이동평균 분석
+                        </h2>
+                        <p class="text-sm text-slate-500 mt-1.5 ml-3.5">단기 인력 투입 트렌드 및 부하 계산용</p>
+                    </div>
+                    <div class="flex items-center space-x-2 mt-4 sm:mt-0 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+                        <button id="prevAvgBtn" class="bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 shadow-sm w-10 h-10 rounded-lg flex items-center justify-center transition hover:text-indigo-600"><i class="fa-solid fa-chevron-left text-base"></i></button>
+                        <div class="flex items-center bg-white border border-slate-200 shadow-sm rounded-lg px-3 h-10 space-x-3">
+                            <span id="avgStartDisplay" class="text-sm text-slate-500 font-bold">YYYY-MM-DD</span>
+                            <span class="text-sm text-slate-300">~</span>
+                            <input type="date" id="avgDatePicker" class="bg-transparent text-base font-bold text-indigo-700 outline-none cursor-pointer w-[135px]">
+                        </div>
+                        <button id="nextAvgBtn" class="bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 shadow-sm w-10 h-10 rounded-lg flex items-center justify-center transition hover:text-indigo-600"><i class="fa-solid fa-chevron-right text-base"></i></button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 lg:grid-cols-5 gap-5">
+                    <div class="bg-slate-50 rounded-xl p-5 text-center border border-slate-200">
+                        <p class="text-sm text-slate-500 font-semibold">전체 평균</p>
+                        <p id="avgTotal" class="text-3xl font-extrabold text-slate-800 mt-2.5">0.0<span class="text-sm font-medium text-slate-500 ml-1">명</span></p>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-5 text-center border border-slate-200">
+                        <p class="text-sm text-slate-500 font-semibold">삼성물산 평균</p>
+                        <p id="avgMulsan" class="text-2xl font-extrabold text-blue-700 mt-2.5">0.0<span class="text-sm font-medium text-slate-500 ml-1">명</span></p>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-5 text-center border border-slate-200">
+                        <p class="text-sm text-slate-500 font-semibold">복합동 평균</p>
+                        <p id="avgComplex" class="text-2xl font-extrabold text-indigo-600 mt-2.5">0.0<span class="text-sm font-medium text-slate-500 ml-1">명</span></p>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-5 text-center border border-slate-200">
+                        <p class="text-sm text-slate-500 font-semibold">그린동 평균</p>
+                        <p id="avgGreen" class="text-2xl font-extrabold text-emerald-600 mt-2.5">0.0<span class="text-sm font-medium text-slate-500 ml-1">명</span></p>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-5 text-center border border-slate-200">
+                        <p class="text-sm text-slate-500 font-semibold">변전소 평균</p>
+                        <p id="avgSubstation" class="text-2xl font-extrabold text-amber-600 mt-2.5">0.0<span class="text-sm font-medium text-slate-500 ml-1">명</span></p>
+                    </div>
+                </div>
+                
+                <div class="mt-6 bg-slate-50 rounded-xl p-4 border border-slate-200 flex flex-wrap items-center justify-around text-sm text-slate-600 font-medium shadow-inner">
+                    <div class="px-3"><span class="text-slate-400 mr-1.5">주간:</span> <span id="avgDay" class="text-slate-800 font-extrabold">0명 (0%)</span></div>
+                    <div class="px-3"><span class="text-slate-400 mr-1.5">연장:</span> <span id="avgExt" class="text-slate-800 font-extrabold">0명 (0%)</span></div>
+                    <div class="px-3"><span class="text-slate-400 mr-1.5">야간:</span> <span id="avgNight" class="text-slate-800 font-extrabold">0명 (0%)</span></div>
+                    <div class="px-3"><span class="text-slate-400 mr-1.5">1교대:</span> <span id="avgS1" class="text-slate-800 font-extrabold">0명 (0%)</span></div>
+                    <div class="px-3"><span class="text-slate-400 mr-1.5">2교대:</span> <span id="avgS2" class="text-slate-800 font-extrabold">0명 (0%)</span></div>
+                    <div class="px-3"><span class="text-slate-400 mr-1.5">철야:</span> <span id="avgOver" class="text-slate-800 font-extrabold">0명 (0%)</span></div>
+                </div>
+            </section>
+
+            <section class="section-box">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-5 mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900 flex items-center space-x-2">
+                            <span class="h-5 w-1.5 bg-emerald-500 rounded-full mr-2"></span>
+                            <i class="fa-solid fa-chart-area mr-1.5 text-emerald-500"></i> 종합 인력 실적 트렌드
+                        </h2>
+                        <p class="text-sm text-slate-500 mt-1.5 ml-3.5">상단 범례(근무형태) 클릭 시 차트 표출. 하단 슬라이더로 기간 조절.</p>
+                    </div>
+                    <div class="flex items-center space-x-1.5 mt-4 sm:mt-0 bg-slate-100 p-1.5 rounded-xl text-sm font-bold border border-slate-200" id="chartBtnGroup">
+                        <button data-period="7" class="chart-btn px-4 py-2 rounded-lg transition text-slate-500 hover:text-slate-800 border border-transparent">최근 7일</button>
+                        <button data-period="30" class="chart-btn px-4 py-2 rounded-lg transition text-slate-500 hover:text-slate-800 border border-transparent">최근 30일</button>
+                        <button data-period="all" class="chart-btn px-4 py-2 rounded-lg transition bg-white text-slate-900 shadow border border-slate-200/80">전체 기간</button>
+                    </div>
+                </div>
+                <div id="echartsContainer" class="w-full h-[500px]"></div>
+            </section>
+
+            <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="kpi-card bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-6 rounded-2xl shadow-md border border-blue-800/30">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-semibold tracking-wide text-blue-100">프로젝트 최고 피크 타임</span>
+                        <i class="fa-solid fa-crown text-amber-300 text-xl"></i>
+                    </div>
+                    <div class="mt-5">
+                        <p class="text-sm text-blue-200 font-medium">최고 인력 투입일</p>
+                        <p id="peakDate" class="text-xl font-extrabold mt-1">-</p>
+                        <p class="text-4xl font-black mt-2 tracking-tight" id="peakValue">0 <span class="text-base font-semibold opacity-80 ml-1">명</span></p>
+                    </div>
+                </div>
+                <div class="kpi-card bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <div class="flex items-center justify-between text-slate-500">
+                        <span class="text-sm font-bold">누적 Man-Day (가중치 반영)</span>
+                        <div class="bg-slate-100 p-2 rounded-lg"><i class="fa-solid fa-calculator text-slate-500"></i></div>
+                    </div>
+                    <div class="mt-5">
+                        <p class="text-sm text-slate-500 font-medium">근무형태별 시간에 따른 투입 공수</p>
+                        <p id="cumulativeManDays" class="text-4xl font-black text-slate-800 mt-2 tracking-tight">0 <span class="text-base font-semibold text-slate-500 ml-1">MD</span></p>
+                        <p class="text-[11px] text-emerald-600 font-bold mt-2.5">※ 주간(1), 연장(1.25), 야간(1.5) MD 산정</p>
+                    </div>
+                </div>
+                <div class="kpi-card bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <div class="flex items-center justify-between text-slate-500">
+                        <span class="text-sm font-bold">누적 Man-Hour (총 근로시간)</span>
+                        <div class="bg-slate-100 p-2 rounded-lg"><i class="fa-solid fa-clock text-slate-500"></i></div>
+                    </div>
+                    <div class="mt-5">
+                        <p class="text-sm text-slate-500 font-medium">전체 근무형태별 실 투입 시간 합산</p>
+                        <p id="cumulativeManHours" class="text-4xl font-black text-slate-800 mt-2 tracking-tight">0 <span class="text-base font-semibold text-slate-500 ml-1">시간</span></p>
+                        <p class="text-[11px] text-emerald-600 font-bold mt-2.5">※ 1일 기준 실제 근로시간 누적</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section-box">
+                <div class="border-b border-slate-200 pb-5 mb-6">
+                    <h2 class="text-xl font-bold text-slate-900 flex items-center space-x-2">
+                        <span class="h-5 w-1.5 bg-amber-500 rounded-full mr-2"></span>
+                        <i class="fa-solid fa-chart-pie mr-1.5 text-amber-500"></i> 종합 누적 지분율 분석
+                    </h2>
+                </div>
+                <div id="pieChartsContainer" class="w-full h-[350px]"></div>
+            </section>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 탭 3: 예상인력 (Expected) -->
+        <!-- ========================================== -->
+        <div id="tab-expected" class="tab-content space-y-8 hidden">
+            <section class="section-box">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-5 mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900 flex items-center space-x-2">
+                            <span class="h-5 w-1.5 bg-purple-600 rounded-full mr-2"></span>
+                            📅 이번 달 (<span id="exp_currentMonthDisplay" class="text-purple-600 mx-1"></span>) 예상 인력 요약
+                        </h2>
+                        <p class="text-sm text-slate-500 mt-1.5 ml-3.5">시공사별 월간 투입 예상 인원</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-5">
+                    <div class="kpi-card bg-gradient-to-br from-purple-900 to-indigo-800 text-white rounded-xl p-6 shadow-md">
+                        <div class="text-sm font-semibold text-purple-200">총 예상 인력 (전체)</div>
+                        <div class="mt-3 text-4xl font-extrabold"><span id="exp_kpiTotal">0</span><span class="text-base font-medium ml-1.5 text-purple-200">명</span></div>
+                    </div>
+                    <div class="kpi-card bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+                        <div class="text-sm font-semibold text-slate-500">삼성물산</div>
+                        <div class="mt-3 text-3xl font-extrabold text-blue-700"><span id="exp_kpiMulsan">0</span><span class="text-base font-medium ml-1.5 text-slate-500">명</span></div>
+                    </div>
+                    <div class="kpi-card bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+                        <div class="text-sm font-semibold text-slate-500">삼성E&A</div>
+                        <div class="mt-3 text-3xl font-extrabold text-amber-600"><span id="exp_kpiEA">0</span><span class="text-base font-medium ml-1.5 text-slate-500">명</span></div>
+                    </div>
+                    <div class="kpi-card bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+                        <div class="text-sm font-semibold text-slate-500">삼성중공업</div>
+                        <div class="mt-3 text-3xl font-extrabold text-rose-600"><span id="exp_kpiHeavy">0</span><span class="text-base font-medium ml-1.5 text-slate-500">명</span></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section-box">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-5 mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900 flex items-center space-x-2">
+                            <span class="h-5 w-1.5 bg-emerald-500 rounded-full mr-2"></span>
+                            📈 월별 예상 인력 트렌드
+                        </h2>
+                        <p class="text-sm text-slate-500 mt-1.5 ml-3.5">Phase별 / 시공사별 전환 및 하단 슬라이더를 통한 기간 설정</p>
+                    </div>
+                    <div class="flex items-center space-x-4 mt-4 sm:mt-0">
+                        <div class="flex space-x-1.5 bg-slate-100 p-1.5 rounded-xl text-sm font-bold border border-slate-200">
+                            <button onclick="setExpectedView('phase')" id="expBtn_phase" class="px-5 py-2 rounded-lg transition bg-white text-purple-700 shadow border border-slate-200/80">Phase별</button>
+                            <button onclick="setExpectedView('contractor')" id="expBtn_contractor" class="px-5 py-2 rounded-lg transition text-slate-500 hover:text-slate-800 border border-transparent">시공사별</button>
+                        </div>
+                        <div class="h-6 w-px bg-slate-300"></div>
+                        <div class="flex space-x-1.5 bg-slate-100 p-1.5 rounded-xl text-sm font-bold border border-slate-200">
+                            <button onclick="setExpectedPeriod('1y')" class="exp-period-btn px-4 py-2 rounded-lg transition text-slate-500 hover:text-slate-800">1년</button>
+                            <button onclick="setExpectedPeriod('3y')" class="exp-period-btn px-4 py-2 rounded-lg transition text-slate-500 hover:text-slate-800">3년</button>
+                            <button onclick="setExpectedPeriod('all')" class="exp-period-btn px-4 py-2 bg-white text-slate-900 shadow border border-slate-200/80 rounded-lg">전체</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="expectedChartContainer" class="w-full h-[550px]"></div>
+            </section>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 탭 4~7: 개발 중 알림 화면 -->
+        <!-- ========================================== -->
+        <div id="tab-progress" class="tab-content hidden">
+            <div class="bg-white rounded-3xl p-32 text-center shadow-sm border border-slate-200">
+                <div class="inline-block p-6 bg-blue-50 rounded-full mb-6 text-blue-500"><i class="fa-solid fa-person-digging text-6xl"></i></div>
+                <h3 class="text-2xl font-black text-slate-800 mb-3">개발 중인 메뉴입니다</h3>
+                <p class="text-base text-slate-500 font-medium">공사진행률 연동 모듈을 구축하고 있습니다. 다음 업데이트를 기대해 주세요.</p>
+            </div>
+        </div>
+        <div id="tab-schedule" class="tab-content hidden">
+            <div class="bg-white rounded-3xl p-32 text-center shadow-sm border border-slate-200">
+                <div class="inline-block p-6 bg-indigo-50 rounded-full mb-6 text-indigo-500"><i class="fa-solid fa-calendar-plus text-6xl"></i></div>
+                <h3 class="text-2xl font-black text-slate-800 mb-3">개발 중인 메뉴입니다</h3>
+                <p class="text-base text-slate-500 font-medium">프로젝트 일정 데이터 연동 모듈을 구축하고 있습니다.</p>
+            </div>
+        </div>
+        <div id="tab-ut" class="tab-content hidden">
+            <div class="bg-white rounded-3xl p-32 text-center shadow-sm border border-slate-200">
+                <div class="inline-block p-6 bg-emerald-50 rounded-full mb-6 text-emerald-500"><i class="fa-solid fa-power-off text-6xl"></i></div>
+                <h3 class="text-2xl font-black text-slate-800 mb-3">개발 중인 메뉴입니다</h3>
+                <p class="text-base text-slate-500 font-medium">UT 턴온(Turn-on) 현황 연동 모듈을 구축하고 있습니다.</p>
+            </div>
+        </div>
+        <div id="tab-handover" class="tab-content hidden">
+            <div class="bg-white rounded-3xl p-32 text-center shadow-sm border border-slate-200">
+                <div class="inline-block p-6 bg-rose-50 rounded-full mb-6 text-rose-500"><i class="fa-solid fa-handshake-angle text-6xl"></i></div>
+                <h3 class="text-2xl font-black text-slate-800 mb-3">개발 중인 메뉴입니다</h3>
+                <p class="text-base text-slate-500 font-medium">인수인계 현황 연동 모듈을 구축하고 있습니다.</p>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 mt-12 py-8 text-center text-sm font-medium text-slate-400">
+        <p>© 2026 P5 FAB1 Infrastructure Technology Center. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        // =====================================================================
+        // 🚨 기존 인력 데이터 (인력 탭용 - 12열)
+        // =====================================================================
+        const rawExcelData = `
+2026-06-01	135	135	60	30	360	220	60	40	20	10	10
+2026-06-02	150	150	70	35	405	250	70	40	20	15	10
+2026-06-03	160	160	75	40	435	280	75	40	20	10	10
+        `;
+
+        // =====================================================================
+        // 🚨 예상 인력 데이터 (예상인력 및 요약 탭용 - 총 18열)
+        // =====================================================================
+        const rawExpectedData = `
+2026.01	100	50	50	50	50	50	100	50	50	50	50	50	50	300	250	200	750
+2026.02	110	60	60	50	50	50	110	60	50	50	50	50	50	350	250	200	800
+2026.03	120	70	70	60	50	50	120	70	60	50	50	50	50	400	270	200	870
+2026.04	130	80	80	70	60	50	130	80	70	60	50	50	50	450	290	200	940
+2026.05	140	90	90	80	70	60	140	90	80	70	60	50	50	500	310	200	1010
+2026.06	150	100	100	90	80	70	150	100	90	80	70	60	50	550	350	250	1150
+2026.07	160	110	110	100	90	80	160	110	100	90	80	70	60	600	380	240	1220
+        `;
+
+        let globalData = [], expData = [];
+        let selectedDayIdx = -1, avgEndIdx = -1;
+        let myChart = null, pieChart = null, expChart = null, pzInstance = null; 
+
+        // ECharts 공통 텍스트 스타일 (폰트 사이즈 조정)
+        const commonTextStyle = { fontFamily: "'Noto Sans KR', sans-serif", fontSize: 13, color: '#475569' };
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                if(btn.getAttribute('onclick').includes(tabId)) {
+                    btn.classList.add('active'); btn.classList.remove('border-transparent');
+                } else {
+                    btn.classList.remove('active'); btn.classList.add('border-transparent');
+                }
+            });
+            setTimeout(() => {
+                if(tabId === 'tab-manpower') { if(myChart) myChart.resize(); if(pieChart) pieChart.resize(); }
+                if(tabId === 'tab-expected' && expChart) expChart.resize();
+            }, 50);
+        }
+
+        function resetAerialZoom() { if(pzInstance) pzInstance.reset(); }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const aerialImage = document.getElementById('aerial-image');
+            pzInstance = Panzoom(aerialImage, { maxScale: 5, contain: 'outside' });
+            document.getElementById('aerial-container').addEventListener('wheel', pzInstance.zoomWithWheel);
+
+            processRawTextData(rawExcelData);
+            processExpectedData(rawExpectedData);
+
+            document.getElementById('prevDayBtn').addEventListener('click', () => { if(selectedDayIdx > 0) { selectedDayIdx--; updateBothDailyDashboards(); } });
+            document.getElementById('nextDayBtn').addEventListener('click', () => { if(selectedDayIdx < globalData.length - 1) { selectedDayIdx++; updateBothDailyDashboards(); } });
+            document.getElementById('dailyDatePicker').addEventListener('change', (e) => {
+                const idx = globalData.findIndex(d => d.date === e.target.value);
+                if(idx !== -1) { selectedDayIdx = idx; updateBothDailyDashboards(); } 
+                else { alert('해당 날짜 데이터가 없습니다.'); document.getElementById('dailyDatePicker').value = globalData[selectedDayIdx].date; }
+            });
+
+            document.getElementById('prevAvgBtn').addEventListener('click', () => { if(avgEndIdx > 4) { avgEndIdx--; updateMovingAverage(); } });
+            document.getElementById('nextAvgBtn').addEventListener('click', () => { if(avgEndIdx < globalData.length - 1) { avgEndIdx++; updateMovingAverage(); } });
+            document.getElementById('avgDatePicker').addEventListener('change', (e) => {
+                const idx = globalData.findIndex(d => d.date === e.target.value);
+                if(idx !== -1) {
+                    if(idx < 4) { alert('최소 5일치 데이터가 필요합니다.'); e.target.value = globalData[avgEndIdx].date; } 
+                    else { avgEndIdx = idx; updateMovingAverage(); }
+                } else { alert('해당 날짜 데이터가 없습니다.'); e.target.value = globalData[avgEndIdx].date; }
+            });
+
+            document.querySelectorAll('.chart-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.chart-btn').forEach(b => {
+                        b.classList.remove('bg-white', 'text-slate-900', 'shadow', 'border-slate-200/80');
+                        b.classList.add('text-slate-500', 'border-transparent');
+                    });
+                    e.target.classList.remove('text-slate-500', 'border-transparent');
+                    e.target.classList.add('bg-white', 'text-slate-900', 'shadow', 'border-slate-200/80');
+
+                    if(!myChart) return;
+                    const period = e.target.dataset.period;
+                    let startPercent = 0; const len = globalData.length;
+                    if(period === '7' && len > 7) startPercent = ((len - 7) / len) * 100;
+                    else if(period === '30' && len > 30) startPercent = ((len - 30) / len) * 100;
+                    myChart.dispatchAction({ type: 'dataZoom', dataZoomIndex: 0, start: startPercent, end: 100 });
+                });
+            });
+
+            window.addEventListener('resize', () => {
+                if(myChart && !document.getElementById('tab-manpower').classList.contains('hidden')) { myChart.resize(); pieChart.resize(); }
+                if(expChart && !document.getElementById('tab-expected').classList.contains('hidden')) expChart.resize();
+            });
+        });
+
+        // ========================== [인력 탭 로직] ==========================
+        function processRawTextData(text) {
+            const lines = text.trim().split('\n');
+            const cln = (val) => { const n = parseInt(String(val || 0).replace(/[^0-9.-]+/g, "")); return isNaN(n) ? 0 : n; };
+            for(let i=0; i<lines.length; i++) {
+                const cols = lines[i].split('\t');
+                if(cols.length < 2) continue;
+                if(cols[0].includes("날짜") || cols[0].length < 4) continue;
+                
+                const day = cln(cols[6]), ext = cln(cols[7]), night = cln(cols[8]), s1 = cln(cols[9]), s2 = cln(cols[10]), over = cln(cols[11]);
+                const dailyMH = (day*8) + (ext*10) + (night*12) + (s1*8) + (s2*8) + (over*8);
+
+                globalData.push({ 
+                    date: cols[0].trim(), mulsan: cln(cols[1]), complex: cln(cols[2]), green: cln(cols[3]), substation: cln(cols[4]), total: cln(cols[5]),
+                    day, ext, night, s1, s2, over, dailyMH, dailyMD: dailyMH / 8
+                });
+            }
+            if(globalData.length>0) {
+                globalData.sort((a,b) => new Date(a.date) - new Date(b.date));
+                selectedDayIdx = globalData.length - 1; avgEndIdx = globalData.length - 1;
+                updateBothDailyDashboards(); updateMovingAverage(); initECharts(); renderAdvancedMetrics();
+            }
+        }
+
+        const calcPrc = (val, tot) => tot > 0 ? ((val/tot)*100).toFixed(1) : "0.0";
+
+        function updateBothDailyDashboards() {
+            if(globalData.length === 0) return;
+            const cur = globalData[selectedDayIdx];
+            const prev = globalData[selectedDayIdx - 1];
+
+            document.getElementById('dailyDatePicker').value = cur.date;
+            ['Total', 'Mulsan', 'Complex', 'Green', 'Substation'].forEach(key => { document.getElementById('kpi' + key).innerText = cur[key.toLowerCase()].toLocaleString(); });
+
+            const setTrend = (id, curV, prevV) => {
+                const el = document.getElementById(id);
+                if(prevV === undefined) { el.className = "mt-3 text-sm font-medium text-slate-400"; el.innerHTML = `전일 기록 없음`; return; }
+                const diff = curV - prevV;
+                if(diff > 0) { el.className = "mt-3 text-sm font-bold text-rose-500"; el.innerHTML = `<i class="fa-solid fa-caret-up mr-1"></i>+${diff.toLocaleString()}명`; }
+                else if(diff < 0) { el.className = "mt-3 text-sm font-bold text-blue-600"; el.innerHTML = `<i class="fa-solid fa-caret-down mr-1"></i>${diff.toLocaleString()}명`; }
+                else { el.className = "mt-3 text-sm font-medium text-slate-400"; el.innerHTML = `- 변동없음`; }
+            };
+
+            setTrend('trendTotal', cur.total, prev?.total); setTrend('trendMulsan', cur.mulsan, prev?.mulsan); setTrend('trendComplex', cur.complex, prev?.complex); setTrend('trendGreen', cur.green, prev?.green); setTrend('trendSubstation', cur.substation, prev?.substation);
+
+            const wtTotal = cur.day + cur.ext + cur.night + cur.s1 + cur.s2 + cur.over;
+            ['Day','Ext','Night','S1','S2','Over'].forEach(k => { document.getElementById('wt'+k).innerHTML = `${cur[k.toLowerCase()].toLocaleString()}명 <span class="text-slate-400 font-normal ml-0.5">(${calcPrc(cur[k.toLowerCase()], wtTotal)}%)</span>`; });
+        }
+
+        function updateMovingAverage() {
+            if(globalData.length < 5) return;
+            const sub = globalData.slice(avgEndIdx - 4, avgEndIdx + 1);
+            document.getElementById('avgStartDisplay').innerText = sub[0].date;
+            document.getElementById('avgDatePicker').value = sub[4].date;
+
+            const avg = (key) => (sub.reduce((acc, r) => acc + r[key], 0) / 5);
+            ['Total','Mulsan','Complex','Green','Substation'].forEach(key => { document.getElementById('avg'+key).innerHTML = `${avg(key.toLowerCase()).toLocaleString(undefined, {minimumFractionDigits:1, maximumFractionDigits:1})}<span class="text-sm font-medium text-slate-500 ml-1">명</span>`; });
+
+            const wtAvgTotal = avg('day') + avg('ext') + avg('night') + avg('s1') + avg('s2') + avg('over');
+            ['Day','Ext','Night','S1','S2','Over'].forEach(k => { document.getElementById('avg'+k).innerHTML = `${avg(k.toLowerCase()).toFixed(1)}명 <span class="text-slate-400 font-normal ml-0.5">(${calcPrc(avg(k.toLowerCase()), wtAvgTotal)}%)</span>`; });
+        }
+
+        function initECharts() {
+            myChart = echarts.init(document.getElementById('echartsContainer'));
+            myChart.setOption({
+                textStyle: commonTextStyle,
+                tooltip: { trigger: 'axis', axisPointer: { type: 'cross' }, textStyle: { fontSize: 13 } },
+                legend: {
+                    data: ['전체(합계)', '삼성물산', '복합동', '그린동', '변전소', '주간(8h)', '연장(10h)', '야간(12h)', '1교대(8h)', '2교대(8h)', '철야(8h)'],
+                    top: 0, type: 'scroll', textStyle: { fontSize: 13, fontWeight: 'bold' },
+                    selected: { '주간(8h)': false, '연장(10h)': false, '야간(12h)': false, '1교대(8h)': false, '2교대(8h)': false, '철야(8h)': false }
+                },
+                grid: { left: '2%', right: '3%', bottom: '12%', containLabel: true },
+                dataZoom: [ { type: 'slider', show: true, xAxisIndex: [0], bottom: 0, start: 0, end: 100, height: 35, textStyle: {fontSize:11} }, { type: 'inside', xAxisIndex: [0], start: 0, end: 100 } ],
+                xAxis: [{ type: 'category', boundaryGap: false, data: globalData.map(d => d.date), axisLabel: { fontSize: 12 } }],
+                yAxis: [{ type: 'value', splitLine: { lineStyle: { color: '#f1f5f9' } }, axisLabel: { fontSize: 12 } }],
+                series: [
+                    { name: '전체(합계)', type: 'line', areaStyle: { color: 'rgba(15,23,42,0.08)' }, itemStyle: { color: '#0f172a' }, lineStyle: { width: 4 }, showSymbol: false, data: globalData.map(d=>d.total) },
+                    { name: '삼성물산', type: 'line', itemStyle: { color: '#2563eb' }, lineStyle: { width: 3 }, showSymbol: false, data: globalData.map(d=>d.mulsan) },
+                    { name: '복합동', type: 'line', itemStyle: { color: '#6366f1' }, lineStyle: { width: 3 }, showSymbol: false, data: globalData.map(d=>d.complex) },
+                    { name: '그린동', type: 'line', itemStyle: { color: '#10b981' }, lineStyle: { width: 3 }, showSymbol: false, data: globalData.map(d=>d.green) },
+                    { name: '변전소', type: 'line', itemStyle: { color: '#f59e0b' }, lineStyle: { width: 3 }, showSymbol: false, data: globalData.map(d=>d.substation) },
+                    { name: '주간(8h)', type: 'line', itemStyle: { color: '#ef4444' }, lineStyle: { type: 'dashed', width:2 }, showSymbol: false, data: globalData.map(d=>d.day) },
+                    { name: '연장(10h)', type: 'line', itemStyle: { color: '#f97316' }, lineStyle: { type: 'dashed', width:2 }, showSymbol: false, data: globalData.map(d=>d.ext) },
+                    { name: '야간(12h)', type: 'line', itemStyle: { color: '#8b5cf6' }, lineStyle: { type: 'dashed', width:2 }, showSymbol: false, data: globalData.map(d=>d.night) },
+                    { name: '1교대(8h)', type: 'line', itemStyle: { color: '#ec4899' }, lineStyle: { type: 'dashed', width:2 }, showSymbol: false, data: globalData.map(d=>d.s1) },
+                    { name: '2교대(8h)', type: 'line', itemStyle: { color: '#14b8a6' }, lineStyle: { type: 'dashed', width:2 }, showSymbol: false, data: globalData.map(d=>d.s2) },
+                    { name: '철야(8h)', type: 'line', itemStyle: { color: '#334155' }, lineStyle: { type: 'dashed', width:2 }, showSymbol: false, data: globalData.map(d=>d.over) },
+                ]
+            });
+        }
+
+        function renderAdvancedMetrics() {
+            if(globalData.length === 0) return;
+            let peakRow = globalData[0]; let totMD = 0, totMH = 0;
+            let sumHC = { mulsan:0, complex:0, green:0, substation:0 };
+            let sumWT = { day:0, ext:0, night:0, s1:0, s2:0, over:0 };
+
+            globalData.forEach(r => {
+                if(r.total > peakRow.total) peakRow = r;
+                totMD += r.dailyMD; totMH += r.dailyMH;
+                sumHC.mulsan += r.mulsan; sumHC.complex += r.complex; sumHC.green += r.green; sumHC.substation += r.substation;
+                sumWT.day += r.day; sumWT.ext += r.ext; sumWT.night += r.night; sumWT.s1 += r.s1; sumWT.s2 += r.s2; sumWT.over += r.over;
+            });
+
+            document.getElementById('peakDate').innerText = peakRow.date;
+            document.getElementById('peakValue').innerHTML = `${peakRow.total.toLocaleString()} <span class="text-lg font-bold opacity-80 ml-1">명</span>`;
+            document.getElementById('cumulativeManDays').innerHTML = `${totMD.toLocaleString(undefined, {maximumFractionDigits:1})} <span class="text-lg font-bold text-slate-500 ml-1">MD</span>`;
+            document.getElementById('cumulativeManHours').innerHTML = `${totMH.toLocaleString()} <span class="text-lg font-bold text-slate-500 ml-1">시간</span>`;
+
+            pieChart = echarts.init(document.getElementById('pieChartsContainer'));
+            const bData = [ { value: sumHC.mulsan, name: '삼성물산', itemStyle: { color: '#2563eb' } }, { value: sumHC.complex, name: '복합동', itemStyle: { color: '#6366f1' } }, { value: sumHC.green, name: '그린동', itemStyle: { color: '#10b981' } }, { value: sumHC.substation, name: '변전소', itemStyle: { color: '#f59e0b' } } ];
+            const wtData = [ { value: sumWT.day, name: '주간', itemStyle: { color: '#ef4444' } }, { value: sumWT.ext, name: '연장', itemStyle: { color: '#f97316' } }, { value: sumWT.night, name: '야간', itemStyle: { color: '#8b5cf6' } }, { value: sumWT.s1, name: '1교대', itemStyle: { color: '#ec4899' } }, { value: sumWT.s2, name: '2교대', itemStyle: { color: '#14b8a6' } }, { value: sumWT.over, name: '철야', itemStyle: { color: '#334155' } } ];
+
+            pieChart.setOption({
+                textStyle: commonTextStyle,
+                tooltip: { trigger: 'item', formatter: '{a} <br/><span style="font-weight:bold;">{b}</span> : {c} ({d}%)', textStyle: { fontSize: 13 } },
+                legend: { bottom: 0, textStyle: { fontSize: 13, fontWeight: 'bold' } },
+                title: [
+                    { text: '건물별 (Man-Day)', left: '16.6%', top: '0', textAlign: 'center', textStyle: { fontSize: 15, fontWeight: 'bold', color: '#334155' } },
+                    { text: '건물별 (Man-Hour)', left: '50%', top: '0', textAlign: 'center', textStyle: { fontSize: 15, fontWeight: 'bold', color: '#334155' } },
+                    { text: '근무형태 누적비율', left: '83.3%', top: '0', textAlign: 'center', textStyle: { fontSize: 15, fontWeight: 'bold', color: '#334155' } }
+                ],
+                series: [
+                    { name: 'Man-Day 기준', type: 'pie', radius: ['45%', '70%'], center: ['16.6%', '50%'], label: { show: false }, data: bData },
+                    { name: 'Man-Hour 기준', type: 'pie', radius: ['45%', '70%'], center: ['50%', '50%'], label: { show: false }, data: bData },
+                    { name: '근무형태 기준', type: 'pie', radius: ['45%', '70%'], center: ['83.3%', '50%'], label: { show: false }, data: wtData }
+                ]
+            });
+        }
+
+        // ========================== [예상인력 & 요약 탭] ==========================
+        function processExpectedData(text) {
+            const lines = text.trim().split('\n');
+            const cln = (val) => { const n = parseInt(String(val || 0).replace(/[^0-9.-]+/g, "")); return isNaN(n) ? 0 : n; };
+            for(let i=0; i<lines.length; i++) {
+                const cols = lines[i].split('\t');
+                if(cols.length < 18) continue;
+                if(cols[0].includes("월") || cols[0].length < 4) continue;
+                expData.push({ 
+                    month: cols[0].trim(),
+                    f1g: cln(cols[1]), f1p1: cln(cols[2]), f1p2: cln(cols[3]), f1p3: cln(cols[4]), f1p4: cln(cols[5]), f1p5: cln(cols[6]),
+                    f2g: cln(cols[7]), f2p1: cln(cols[8]), f2p2: cln(cols[9]), f2p3: cln(cols[10]), f2p4: cln(cols[11]), f2p5: cln(cols[12]), f2p6: cln(cols[13]),
+                    mulsan: cln(cols[14]), ea: cln(cols[15]), heavy: cln(cols[16]), total: cln(cols[17])
+                });
+            }
+
+            if(expData.length > 0) {
+                let currentMonthRow = expData.find(d => d.month.includes('06'));
+                if(!currentMonthRow) currentMonthRow = expData[expData.length-1];
+
+                // 예상인력 탭
+                document.getElementById('exp_currentMonthDisplay').innerText = currentMonthRow.month;
+                document.getElementById('exp_kpiTotal').innerText = currentMonthRow.total.toLocaleString();
+                document.getElementById('exp_kpiMulsan').innerText = currentMonthRow.mulsan.toLocaleString();
+                document.getElementById('exp_kpiEA').innerText = currentMonthRow.ea.toLocaleString();
+                document.getElementById('exp_kpiHeavy').innerText = currentMonthRow.heavy.toLocaleString();
+
+                // 요약 탭
+                document.getElementById('sum_exp_month').innerText = currentMonthRow.month;
+                document.getElementById('sum_exp_total').innerText = currentMonthRow.total.toLocaleString();
+                document.getElementById('sum_exp_mulsan').innerText = currentMonthRow.mulsan.toLocaleString();
+                document.getElementById('sum_exp_ea').innerText = currentMonthRow.ea.toLocaleString();
+                document.getElementById('sum_exp_heavy').innerText = currentMonthRow.heavy.toLocaleString();
+
+                ['f1g','f1p1','f1p2','f1p3','f1p4','f1p5','f2g','f2p1','f2p2','f2p3','f2p4','f2p5','f2p6'].forEach(k => {
+                    document.getElementById('sum_' + k).innerText = currentMonthRow[k].toLocaleString();
+                });
+
+                initExpectedChart();
+            }
+        }
+
+        function initExpectedChart() {
+            expChart = echarts.init(document.getElementById('expectedChartContainer'));
+            renderExpectedChart('phase'); 
+        }
+
+        function renderExpectedChart(viewType) {
+            if(!expChart || expData.length === 0) return;
+            const months = expData.map(d => d.month);
+            let legends = [], seriesData = [];
+
+            if (viewType === 'phase') {
+                legends = ['전체 인원', 'Fab1 골조', 'F1 Ph1', 'F1 Ph2', 'F1 Ph3', 'F1 Ph4', 'F1 Ph5', 'Fab2 골조', 'F2 Ph1', 'F2 Ph2', 'F2 Ph3', 'F2 Ph4', 'F2 Ph5', 'F2 Ph6'];
+                seriesData = [
+                    { name: '전체 인원', type: 'line', areaStyle: {color:'rgba(139, 92, 246, 0.1)'}, itemStyle:{color:'#8b5cf6'}, lineStyle:{width:4}, showSymbol:false, data: expData.map(d=>d.total) },
+                    { name: 'Fab1 골조', type: 'line', lineStyle:{width:2}, data: expData.map(d=>d.f1g) }, { name: 'F1 Ph1', type: 'line', lineStyle:{width:2}, data: expData.map(d=>d.f1p1) },
+                    { name: 'F1 Ph2', type: 'line', lineStyle:{width:2}, data: expData.map(d=>d.f1p2) }, { name: 'F1 Ph3', type: 'line', lineStyle:{width:2}, data: expData.map(d=>d.f1p3) },
+                    { name: 'F1 Ph4', type: 'line', lineStyle:{width:2}, data: expData.map(d=>d.f1p4) }, { name: 'F1 Ph5', type: 'line', lineStyle:{width:2}, data: expData.map(d=>d.f1p5) },
+                    { name: 'Fab2 골조', type: 'line', lineStyle:{width:2}, data: expData.map(d=>d.f2g) }, { name: 'F2 Ph1', type: 'line', lineStyle:{width:2}, data: expData.map(d=>d.f2p1) },
+                    { name: 'F2 Ph2', type: 'line', lineStyle:{width:2}, data: expData.map(d=>d.f2p2) }, { name: 'F2 Ph3', type: 'line', lineStyle:{width:2}, data: expData.map(d=>d.f2p3) },
+                    { name: 'F2 Ph4', type: 'line', lineStyle:{width:2}, data: expData.map(d=>d.f2p4) }, { name: 'F2 Ph5', type: 'line', lineStyle:{width:2}, data: expData.map(d=>d.f2p5) },
+                    { name: 'F2 Ph6', type: 'line', lineStyle:{width:2}, data: expData.map(d=>d.f2p6) }
+                ];
+            } else {
+                legends = ['전체 인원', '삼성물산', '삼성E&A', '삼성중공업'];
+                seriesData = [
+                    { name: '전체 인원', type: 'line', areaStyle: {color:'rgba(16, 185, 129, 0.1)'}, itemStyle:{color:'#10b981'}, lineStyle:{width:4}, showSymbol:false, data: expData.map(d=>d.total) },
+                    { name: '삼성물산', type: 'line', itemStyle:{color:'#2563eb'}, lineStyle:{width:3}, data: expData.map(d=>d.mulsan) },
+                    { name: '삼성E&A', type: 'line', itemStyle:{color:'#f59e0b'}, lineStyle:{width:3}, data: expData.map(d=>d.ea) },
+                    { name: '삼성중공업', type: 'line', itemStyle:{color:'#f43f5e'}, lineStyle:{width:3}, data: expData.map(d=>d.heavy) }
+                ];
+            }
+
+            expChart.clear();
+            expChart.setOption({
+                textStyle: commonTextStyle,
+                tooltip: { trigger: 'axis', axisPointer: { type: 'cross' }, textStyle: { fontSize: 13 } },
+                legend: { data: legends, top: 0, type: 'scroll', textStyle: { fontSize: 13, fontWeight: 'bold' } },
+                grid: { left: '2%', right: '3%', bottom: '12%', containLabel: true },
+                dataZoom: [ { type: 'slider', show: true, bottom: 0, height: 35, textStyle: {fontSize:11} }, { type: 'inside' } ],
+                xAxis: [{ type: 'category', boundaryGap: false, data: months, axisLabel: { fontSize: 12 } }],
+                yAxis: [{ type: 'value', splitLine: { lineStyle: { color: '#f1f5f9' } }, axisLabel: { fontSize: 12 } }],
+                series: seriesData
+            });
+        }
+
+        function setExpectedView(view) {
+            document.getElementById('expBtn_phase').className = (view==='phase') ? "px-5 py-2 rounded-lg transition bg-white text-purple-700 font-bold shadow border border-slate-200/80" : "px-5 py-2 rounded-lg transition text-slate-500 hover:text-slate-800 border border-transparent";
+            document.getElementById('expBtn_contractor').className = (view==='contractor') ? "px-5 py-2 rounded-lg transition bg-white text-emerald-700 font-bold shadow border border-slate-200/80" : "px-5 py-2 rounded-lg transition text-slate-500 hover:text-slate-800 border border-transparent";
+            renderExpectedChart(view);
+        }
+
+        function setExpectedPeriod(period) {
+            if(!expChart) return;
+            const btns = document.querySelectorAll('.exp-period-btn');
+            btns.forEach(b => { b.classList.remove('bg-white','text-slate-900','shadow','border-slate-200/80'); b.classList.add('text-slate-500'); });
+            event.target.classList.add('bg-white','text-slate-900','shadow','border-slate-200/80');
+
+            let start = 0; const len = expData.length;
+            if(period === '1y' && len > 12) start = ((len-12)/len)*100;
+            if(period === '3y' && len > 36) start = ((len-36)/len)*100;
+            expChart.dispatchAction({ type: 'dataZoom', start, end: 100 });
+        }
+    </script>
+</body>
+</html>
