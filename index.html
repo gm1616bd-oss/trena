@@ -42,11 +42,19 @@
         .custom-checkbox input:checked + div { background-color: #8b5cf6; border-color: #8b5cf6; color: white; }
         
         /* 공사 현황 차트 컨테이너 동적 보더 트랜지션 */
-        .prog-chart-container { transition: border-color 0.3s ease; border-width: 2px; }
+        .prog-chart-container { transition: border-color 0.4s ease, box-shadow 0.4s ease; border-width: 2px; }
+        
+        /* 미니 신호등 UI */
+        .traffic-light { display: flex; align-items: center; justify-content: center; background-color: #1e293b; padding: 3px 4px; border-radius: 6px; gap: 3px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); }
+        .tl-bulb { width: 10px; height: 10px; border-radius: 50%; opacity: 0.15; transition: 0.3s; }
+        .tl-red.active { opacity: 1; background-color: #ef4444; box-shadow: 0 0 8px #ef4444; }
+        .tl-yellow.active { opacity: 1; background-color: #facc15; box-shadow: 0 0 8px #facc15; }
+        .tl-green.active { opacity: 1; background-color: #22c55e; box-shadow: 0 0 8px #22c55e; }
     </style>
 </head>
 <body class="antialiased">
 
+    <!-- 상단 헤더 -->
     <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-50">
         <div class="max-w-[1400px] mx-auto px-6 lg:px-8 h-20 flex items-center justify-between">
             <div class="flex items-center space-x-4">
@@ -66,6 +74,7 @@
 
     <main class="max-w-[1400px] mx-auto px-6 lg:px-8 py-8 space-y-8">
 
+        <!-- 🔗 상단 퀵 링크 버튼 -->
         <section>
             <div class="grid grid-cols-3 lg:grid-cols-9 gap-3">
                 <a href="#" target="_blank" class="quick-btn bg-white border border-slate-200 shadow-sm rounded-xl px-3 py-4 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-sitemap text-blue-500 text-2xl mb-2.5"></i><span class="text-xs lg:text-sm font-bold text-slate-700">조직도</span></a>
@@ -80,6 +89,7 @@
             </div>
         </section>
 
+        <!-- 📑 7개 탭 네비게이션 -->
         <div class="border-b-2 border-slate-300 flex overflow-x-auto hide-scrollbar pt-2">
             <button onclick="switchTab('tab-summary')" class="tab-btn active min-w-[120px] px-5 py-3.5 text-slate-500 border-b-[3px] border-transparent rounded-t-lg">요약</button>
             <button onclick="switchTab('tab-manpower')" class="tab-btn min-w-[120px] px-5 py-3.5 text-slate-500 border-b-[3px] border-transparent rounded-t-lg">인력</button>
@@ -90,51 +100,91 @@
             <button onclick="switchTab('tab-handover')" class="tab-btn min-w-[120px] px-5 py-3.5 text-slate-500 border-b-[3px] border-transparent rounded-t-lg">인수인계</button>
         </div>
 
+        <!-- ========================================== -->
+        <!-- ⭐ 탭 1: 요약 (Summary) -->
+        <!-- ========================================== -->
         <div id="tab-summary" class="tab-content space-y-8 block">
             
+            <!-- [요약 1] 건물별/공사별 진행률 실적 -->
             <section class="section-box bg-slate-50 border-slate-200 clickable-box relative group" onclick="switchTab('tab-progress')">
                 <div class="absolute top-4 right-5 opacity-0 group-hover:opacity-100 transition text-blue-500 text-sm font-bold bg-blue-50 px-3 py-1 rounded-full"><i class="fa-solid fa-arrow-right-to-bracket mr-1"></i> 공사 현황 탭으로 이동</div>
                 <div class="border-b border-slate-200 pb-4 mb-5">
                     <h2 class="text-xl font-bold text-slate-900 flex items-center space-x-2">
                         <span class="h-5 w-1.5 bg-rose-500 rounded-full mr-2"></span>
-                        📈 주요 공사 현황 <span class="text-sm font-medium text-slate-500 ml-2" id="sum_prog_date">로딩중...</span>
+                        📈 주요 공사 현황 요약 <span class="text-sm font-medium text-slate-500 ml-2" id="sum_prog_date">(로딩중...)</span>
                     </h2>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pointer-events-none">
-                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                        <h3 class="text-base font-extrabold text-slate-800 mb-4 border-b border-slate-100 pb-2">FAB</h3>
-                        <div class="flex justify-between items-center mb-3"><span class="text-sm font-bold text-slate-700">기초</span><div class="text-right"><div><span class="text-xl font-black text-red-500 mr-1" id="sum_p_f_b_act">실적 0%</span> <span class="text-xs font-bold text-blue-500" id="sum_p_f_b_pln">계획 0%</span></div><div id="sum_p_f_b_stat"></div></div></div>
-                        <div class="flex justify-between items-center mb-3"><span class="text-sm font-bold text-slate-700">골조</span><div class="text-right"><div><span class="text-xl font-black text-red-500 mr-1" id="sum_p_f_f_act">실적 0%</span> <span class="text-xs font-bold text-blue-500" id="sum_p_f_f_pln">계획 0%</span></div><div id="sum_p_f_f_stat"></div></div></div>
-                        <div class="flex justify-between items-center"><span class="text-sm font-bold text-slate-700">데크</span><div class="text-right"><div><span class="text-xl font-black text-red-500 mr-1" id="sum_p_f_d_act">실적 0%</span> <span class="text-xs font-bold text-blue-500" id="sum_p_f_d_pln">계획 0%</span></div><div id="sum_p_f_d_stat"></div></div></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 pointer-events-none">
+                    <!-- FAB -->
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                        <h3 class="text-base font-extrabold text-blue-700 mb-4 border-b border-slate-100 pb-2"><i class="fa-solid fa-industry mr-1.5 opacity-70"></i>FAB</h3>
+                        <div class="flex justify-between items-center mb-4">
+                            <div class="flex items-center space-x-2"><span class="text-lg font-black text-slate-800">기초</span><div id="sum_p_f_b_light"></div></div>
+                            <div class="flex items-baseline space-x-3"><span class="text-2xl font-black text-slate-800" id="sum_p_f_b_act">0%</span> <span class="text-sm font-bold text-slate-400" id="sum_p_f_b_pln">0%</span></div>
+                        </div>
+                        <div class="flex justify-between items-center mb-4">
+                            <div class="flex items-center space-x-2"><span class="text-lg font-black text-slate-800">골조</span><div id="sum_p_f_f_light"></div></div>
+                            <div class="flex items-baseline space-x-3"><span class="text-2xl font-black text-slate-800" id="sum_p_f_f_act">0%</span> <span class="text-sm font-bold text-slate-400" id="sum_p_f_f_pln">0%</span></div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center space-x-2"><span class="text-lg font-black text-slate-800">데크</span><div id="sum_p_f_d_light"></div></div>
+                            <div class="flex items-baseline space-x-3"><span class="text-2xl font-black text-slate-800" id="sum_p_f_d_act">0%</span> <span class="text-sm font-bold text-slate-400" id="sum_p_f_d_pln">0%</span></div>
+                        </div>
                     </div>
-                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                        <h3 class="text-base font-extrabold text-slate-800 mb-4 border-b border-slate-100 pb-2">복합동</h3>
-                        <div class="flex justify-between items-center mb-3"><span class="text-sm font-bold text-slate-700">기초</span><div class="text-right"><div><span class="text-xl font-black text-red-500 mr-1" id="sum_p_c_b_act">실적 0%</span> <span class="text-xs font-bold text-blue-500" id="sum_p_c_b_pln">계획 0%</span></div><div id="sum_p_c_b_stat"></div></div></div>
-                        <div class="flex justify-between items-center mb-3"><span class="text-sm font-bold text-slate-700">철골</span><div class="text-right"><div><span class="text-xl font-black text-red-500 mr-1" id="sum_p_c_s_act">실적 0%</span> <span class="text-xs font-bold text-blue-500" id="sum_p_c_s_pln">계획 0%</span></div><div id="sum_p_c_s_stat"></div></div></div>
-                        <div class="flex justify-between items-center"><span class="text-sm font-bold text-slate-700">PC</span><div class="text-right"><div><span class="text-xl font-black text-red-500 mr-1" id="sum_p_c_p_act">실적 0%</span> <span class="text-xs font-bold text-blue-500" id="sum_p_c_p_pln">계획 0%</span></div><div id="sum_p_c_p_stat"></div></div></div>
+                    <!-- 복합동 -->
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                        <h3 class="text-base font-extrabold text-indigo-700 mb-4 border-b border-slate-100 pb-2"><i class="fa-solid fa-building mr-1.5 opacity-70"></i>복합동</h3>
+                        <div class="flex justify-between items-center mb-4">
+                            <div class="flex items-center space-x-2"><span class="text-lg font-black text-slate-800">기초</span><div id="sum_p_c_b_light"></div></div>
+                            <div class="flex items-baseline space-x-3"><span class="text-2xl font-black text-slate-800" id="sum_p_c_b_act">0%</span> <span class="text-sm font-bold text-slate-400" id="sum_p_c_b_pln">0%</span></div>
+                        </div>
+                        <div class="flex justify-between items-center mb-4">
+                            <div class="flex items-center space-x-2"><span class="text-lg font-black text-slate-800">철골</span><div id="sum_p_c_s_light"></div></div>
+                            <div class="flex items-baseline space-x-3"><span class="text-2xl font-black text-slate-800" id="sum_p_c_s_act">0%</span> <span class="text-sm font-bold text-slate-400" id="sum_p_c_s_pln">0%</span></div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center space-x-2"><span class="text-lg font-black text-slate-800">PC</span><div id="sum_p_c_p_light"></div></div>
+                            <div class="flex items-baseline space-x-3"><span class="text-2xl font-black text-slate-800" id="sum_p_c_p_act">0%</span> <span class="text-sm font-bold text-slate-400" id="sum_p_c_p_pln">0%</span></div>
+                        </div>
                     </div>
-                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                        <h3 class="text-base font-extrabold text-slate-800 mb-4 border-b border-slate-100 pb-2">그린동</h3>
-                        <div class="flex justify-between items-center mb-3"><span class="text-sm font-bold text-slate-700">PC</span><div class="text-right"><div><span class="text-xl font-black text-red-500 mr-1" id="sum_p_g_p_act">실적 0%</span> <span class="text-xs font-bold text-blue-500" id="sum_p_g_p_pln">계획 0%</span></div><div id="sum_p_g_p_stat"></div></div></div>
-                        <div class="flex justify-between items-center"><span class="text-sm font-bold text-slate-700">RC</span><div class="text-right"><div><span class="text-xl font-black text-red-500 mr-1" id="sum_p_g_r_act">실적 0%</span> <span class="text-xs font-bold text-blue-500" id="sum_p_g_r_pln">계획 0%</span></div><div id="sum_p_g_r_stat"></div></div></div>
+                    <!-- 그린동 -->
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                        <h3 class="text-base font-extrabold text-emerald-700 mb-4 border-b border-slate-100 pb-2"><i class="fa-solid fa-leaf mr-1.5 opacity-70"></i>그린동</h3>
+                        <div class="flex justify-between items-center mb-4">
+                            <div class="flex items-center space-x-2"><span class="text-lg font-black text-slate-800">PC</span><div id="sum_p_g_p_light"></div></div>
+                            <div class="flex items-baseline space-x-3"><span class="text-2xl font-black text-slate-800" id="sum_p_g_p_act">0%</span> <span class="text-sm font-bold text-slate-400" id="sum_p_g_p_pln">0%</span></div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center space-x-2"><span class="text-lg font-black text-slate-800">RC</span><div id="sum_p_g_r_light"></div></div>
+                            <div class="flex items-baseline space-x-3"><span class="text-2xl font-black text-slate-800" id="sum_p_g_r_act">0%</span> <span class="text-sm font-bold text-slate-400" id="sum_p_g_r_pln">0%</span></div>
+                        </div>
                     </div>
-                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                        <h3 class="text-base font-extrabold text-slate-800 mb-4 border-b border-slate-100 pb-2">변전소</h3>
-                        <div class="flex justify-between items-center mb-3"><span class="text-sm font-bold text-slate-700">PC</span><div class="text-right"><div><span class="text-xl font-black text-red-500 mr-1" id="sum_p_s_p_act">실적 0%</span> <span class="text-xs font-bold text-blue-500" id="sum_p_s_p_pln">계획 0%</span></div><div id="sum_p_s_p_stat"></div></div></div>
-                        <div class="flex justify-between items-center"><span class="text-sm font-bold text-slate-700">RC</span><div class="text-right"><div><span class="text-xl font-black text-red-500 mr-1" id="sum_p_s_r_act">실적 0%</span> <span class="text-xs font-bold text-blue-500" id="sum_p_s_r_pln">계획 0%</span></div><div id="sum_p_s_r_stat"></div></div></div>
+                    <!-- 변전소 -->
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                        <h3 class="text-base font-extrabold text-amber-600 mb-4 border-b border-slate-100 pb-2"><i class="fa-solid fa-bolt mr-1.5 opacity-70"></i>변전소</h3>
+                        <div class="flex justify-between items-center mb-4">
+                            <div class="flex items-center space-x-2"><span class="text-lg font-black text-slate-800">PC</span><div id="sum_p_s_p_light"></div></div>
+                            <div class="flex items-baseline space-x-3"><span class="text-2xl font-black text-slate-800" id="sum_p_s_p_act">0%</span> <span class="text-sm font-bold text-slate-400" id="sum_p_s_p_pln">0%</span></div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center space-x-2"><span class="text-lg font-black text-slate-800">RC</span><div id="sum_p_s_r_light"></div></div>
+                            <div class="flex items-baseline space-x-3"><span class="text-2xl font-black text-slate-800" id="sum_p_s_r_act">0%</span> <span class="text-sm font-bold text-slate-400" id="sum_p_s_r_pln">0%</span></div>
+                        </div>
                     </div>
                 </div>
             </section>
 
+            <!-- [요약 2] 일별 인력 투입 실적 -->
             <section class="section-box bg-blue-50/20 border-blue-100 clickable-box relative group" onclick="switchTab('tab-manpower')">
                 <div class="absolute top-4 right-5 opacity-0 group-hover:opacity-100 transition text-blue-500 text-sm font-bold bg-blue-50 px-3 py-1 rounded-full"><i class="fa-solid fa-arrow-right-to-bracket mr-1"></i> 인력 탭으로 이동</div>
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-5 mb-6">
                     <div>
                         <h2 class="text-xl font-bold text-slate-900 flex items-center space-x-2">
                             <span class="h-5 w-1.5 bg-blue-600 rounded-full mr-2"></span>
-                            📊 일별 인력 투입 현황 <span class="text-sm font-medium text-slate-500 ml-2">(실제 데이터)</span>
+                            📊 일별 인력 투입 실적
                         </h2>
                     </div>
+                    <!-- 클릭 전파 방지: 달력 조작 시 탭 이동 안됨 -->
                     <div class="flex items-center space-x-2 mt-4 sm:mt-0 bg-white p-1.5 rounded-xl border border-slate-200 shadow-sm" onclick="event.stopPropagation()">
                         <button id="sum_prevDayBtn" class="bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200 shadow-sm w-10 h-10 rounded-lg flex items-center justify-center transition hover:text-blue-600"><i class="fa-solid fa-chevron-left text-base"></i></button>
                         <div class="relative flex items-center px-3 h-10">
@@ -151,22 +201,22 @@
                         <div class="mt-3 text-sm font-medium flex items-center text-slate-400" id="sum_trendTotal">-</div>
                     </div>
                     <div class="kpi-card bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-                        <div class="flex justify-between items-start text-slate-500"><span class="text-sm font-semibold">삼성물산</span></div>
+                        <div class="flex justify-between items-start text-slate-500"><span class="text-sm font-bold text-blue-700"><i class="fa-solid fa-industry mr-1"></i>삼성물산</span></div>
                         <div class="mt-4 flex items-baseline space-x-1.5"><span id="sum_kpiMulsan" class="text-3xl font-extrabold text-slate-800">0</span><span class="text-sm text-slate-500 font-medium">명</span></div>
                         <div class="mt-3 text-sm font-medium flex items-center" id="sum_trendMulsan">-</div>
                     </div>
                     <div class="kpi-card bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-                        <div class="flex justify-between items-start text-slate-500"><span class="text-sm font-semibold">복합동</span></div>
+                        <div class="flex justify-between items-start text-slate-500"><span class="text-sm font-bold text-indigo-700"><i class="fa-solid fa-building mr-1"></i>복합동</span></div>
                         <div class="mt-4 flex items-baseline space-x-1.5"><span id="sum_kpiComplex" class="text-3xl font-extrabold text-slate-800">0</span><span class="text-sm text-slate-500 font-medium">명</span></div>
                         <div class="mt-3 text-sm font-medium flex items-center" id="sum_trendComplex">-</div>
                     </div>
                     <div class="kpi-card bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-                        <div class="flex justify-between items-start text-slate-500"><span class="text-sm font-semibold">그린동</span></div>
+                        <div class="flex justify-between items-start text-slate-500"><span class="text-sm font-bold text-emerald-700"><i class="fa-solid fa-leaf mr-1"></i>그린동</span></div>
                         <div class="mt-4 flex items-baseline space-x-1.5"><span id="sum_kpiGreen" class="text-3xl font-extrabold text-slate-800">0</span><span class="text-sm text-slate-500 font-medium">명</span></div>
                         <div class="mt-3 text-sm font-medium flex items-center" id="sum_trendGreen">-</div>
                     </div>
                     <div class="kpi-card bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-                        <div class="flex justify-between items-start text-slate-500"><span class="text-sm font-semibold">변전소</span></div>
+                        <div class="flex justify-between items-start text-slate-500"><span class="text-sm font-bold text-amber-600"><i class="fa-solid fa-bolt mr-1"></i>변전소</span></div>
                         <div class="mt-4 flex items-baseline space-x-1.5"><span id="sum_kpiSubstation" class="text-3xl font-extrabold text-slate-800">0</span><span class="text-sm text-slate-500 font-medium">명</span></div>
                         <div class="mt-3 text-sm font-medium flex items-center" id="sum_trendSubstation">-</div>
                     </div>
@@ -182,67 +232,78 @@
                 </div>
             </section>
 
+            <!-- [요약 3] 예상 인력 요약 -->
             <section class="section-box bg-purple-50/20 border-purple-100 clickable-box relative group" onclick="switchTab('tab-expected')">
                 <div class="absolute top-4 right-5 opacity-0 group-hover:opacity-100 transition text-blue-500 text-sm font-bold bg-blue-50 px-3 py-1 rounded-full"><i class="fa-solid fa-arrow-right-to-bracket mr-1"></i> 예상인력 탭으로 이동</div>
-                <div class="border-b border-slate-200 pb-5 mb-6">
-                    <h2 class="text-xl font-bold text-slate-900 flex items-center space-x-2">
-                        <span class="h-5 w-1.5 bg-purple-600 rounded-full mr-2"></span>
-                        📅 이번 달 (<span id="sum_exp_month" class="text-purple-600 mx-1"></span>) 예상 인력 요약
-                    </h2>
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-5 mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900 flex items-center space-x-2">
+                            <span class="h-5 w-1.5 bg-purple-600 rounded-full mr-2"></span>
+                            📅 예상 인력 요약
+                        </h2>
+                    </div>
+                    <div class="flex items-center space-x-2 mt-4 sm:mt-0 bg-white p-1.5 rounded-xl border border-slate-200 shadow-sm" onclick="event.stopPropagation()">
+                        <button id="sum_prevExpBtn" class="bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200 shadow-sm w-10 h-10 rounded-lg flex items-center justify-center transition hover:text-purple-600"><i class="fa-solid fa-chevron-left text-base"></i></button>
+                        <div class="relative flex items-center px-4 h-10">
+                            <span id="sum_exp_month_display" class="font-bold text-lg text-purple-700 w-[70px] text-center">YYYY.MM</span>
+                        </div>
+                        <button id="sum_nextExpBtn" class="bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200 shadow-sm w-10 h-10 rounded-lg flex items-center justify-center transition hover:text-purple-600"><i class="fa-solid fa-chevron-right text-base"></i></button>
+                    </div>
                 </div>
                 
                 <div class="mb-8 pointer-events-none">
-                    <h3 class="text-base font-bold text-slate-800 mb-4 ml-1"><i class="fa-solid fa-building mr-2 text-slate-400"></i>시공사별 예상 인력</h3>
+                    <h3 class="text-sm font-bold text-slate-600 mb-3 ml-1"><i class="fa-solid fa-users mr-1.5"></i>시공사별 예상 인력</h3>
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-5">
-                        <div class="kpi-card bg-gradient-to-br from-purple-900 to-indigo-800 text-white rounded-xl p-5">
+                        <div class="kpi-card bg-gradient-to-br from-purple-900 to-indigo-800 text-white rounded-xl p-5 shadow-sm">
                             <div class="text-sm font-semibold text-purple-200">총 예상 인력 (전체)</div>
                             <div class="mt-3 text-4xl font-extrabold"><span id="sum_exp_total">0</span><span class="text-base font-medium ml-1.5 text-purple-200">명</span></div>
                         </div>
-                        <div class="kpi-card bg-slate-50 rounded-xl p-5 border border-slate-200">
-                            <div class="text-sm font-semibold text-slate-500">삼성물산</div>
-                            <div class="mt-3 text-3xl font-extrabold text-blue-700"><span id="sum_exp_mulsan">0</span><span class="text-base font-medium ml-1.5 text-slate-500">명</span></div>
+                        <div class="kpi-card bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
+                            <div class="text-sm font-bold text-blue-700"><i class="fa-solid fa-industry mr-1.5"></i>삼성물산</div>
+                            <div class="mt-3 text-3xl font-extrabold text-slate-800"><span id="sum_exp_mulsan">0</span><span class="text-base font-medium ml-1.5 text-slate-500">명</span></div>
                         </div>
-                        <div class="kpi-card bg-slate-50 rounded-xl p-5 border border-slate-200">
-                            <div class="text-sm font-semibold text-slate-500">삼성E&A</div>
-                            <div class="mt-3 text-3xl font-extrabold text-amber-600"><span id="sum_exp_ea">0</span><span class="text-base font-medium ml-1.5 text-slate-500">명</span></div>
+                        <div class="kpi-card bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
+                            <div class="text-sm font-bold text-amber-600"><i class="fa-solid fa-helmet-safety mr-1.5"></i>삼성E&A</div>
+                            <div class="mt-3 text-3xl font-extrabold text-slate-800"><span id="sum_exp_ea">0</span><span class="text-base font-medium ml-1.5 text-slate-500">명</span></div>
                         </div>
-                        <div class="kpi-card bg-slate-50 rounded-xl p-5 border border-slate-200">
-                            <div class="text-sm font-semibold text-slate-500">삼성중공업</div>
-                            <div class="mt-3 text-3xl font-extrabold text-rose-600"><span id="sum_exp_heavy">0</span><span class="text-base font-medium ml-1.5 text-slate-500">명</span></div>
+                        <div class="kpi-card bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
+                            <div class="text-sm font-bold text-rose-600"><i class="fa-solid fa-ship mr-1.5"></i>삼성중공업</div>
+                            <div class="mt-3 text-3xl font-extrabold text-slate-800"><span id="sum_exp_heavy">0</span><span class="text-base font-medium ml-1.5 text-slate-500">명</span></div>
                         </div>
                     </div>
                 </div>
 
                 <div class="pointer-events-none">
-                    <h3 class="text-base font-bold text-slate-800 mb-4 ml-1"><i class="fa-solid fa-layer-group mr-2 text-slate-400"></i>Phase별 예상 인력</h3>
+                    <h3 class="text-sm font-bold text-slate-600 mb-3 ml-1"><i class="fa-solid fa-layer-group mr-1.5"></i>Phase별 예상 인력</h3>
                     <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
                         <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-                            <h4 class="text-sm font-extrabold text-slate-800 mb-4 border-b border-slate-100 pb-2">FAB 1</h4>
+                            <h4 class="text-sm font-extrabold text-slate-800 mb-4 border-b border-slate-100 pb-2"><i class="fa-solid fa-industry mr-1.5 text-blue-600"></i>FAB 1</h4>
                             <div class="grid grid-cols-3 sm:grid-cols-6 gap-3">
-                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">골조</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_f1g">0</div></div>
-                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph1</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_f1p1">0</div></div>
-                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph2</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_f1p2">0</div></div>
-                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph3</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_f1p3">0</div></div>
-                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph4</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_f1p4">0</div></div>
-                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph5</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_f1p5">0</div></div>
+                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">골조</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_exp_f1g">0</div></div>
+                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph1</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_exp_f1p1">0</div></div>
+                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph2</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_exp_f1p2">0</div></div>
+                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph3</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_exp_f1p3">0</div></div>
+                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph4</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_exp_f1p4">0</div></div>
+                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph5</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_exp_f1p5">0</div></div>
                             </div>
                         </div>
                         <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-                            <h4 class="text-sm font-extrabold text-slate-800 mb-4 border-b border-slate-100 pb-2">FAB 2</h4>
+                            <h4 class="text-sm font-extrabold text-slate-800 mb-4 border-b border-slate-100 pb-2"><i class="fa-solid fa-industry mr-1.5 text-blue-600"></i>FAB 2</h4>
                             <div class="grid grid-cols-3 sm:grid-cols-7 gap-3">
-                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">골조</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_f2g">0</div></div>
-                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph1</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_f2p1">0</div></div>
-                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph2</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_f2p2">0</div></div>
-                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph3</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_f2p3">0</div></div>
-                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph4</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_f2p4">0</div></div>
-                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph5</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_f2p5">0</div></div>
-                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph6</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_f2p6">0</div></div>
+                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">골조</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_exp_f2g">0</div></div>
+                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph1</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_exp_f2p1">0</div></div>
+                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph2</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_exp_f2p2">0</div></div>
+                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph3</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_exp_f2p3">0</div></div>
+                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph4</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_exp_f2p4">0</div></div>
+                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph5</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_exp_f2p5">0</div></div>
+                                <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph6</div><div class="text-lg font-bold text-slate-800 mt-1" id="sum_exp_f2p6">0</div></div>
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
 
+            <!-- [요약 4] 항공사진 -->
             <section class="section-box">
                 <div class="border-b border-slate-200 pb-5 mb-6 flex justify-between items-end">
                     <div>
@@ -259,6 +320,9 @@
             </section>
         </div>
 
+        <!-- ========================================== -->
+        <!-- ⭐ 탭 2: 인력 (Manpower) -->
+        <!-- ========================================== -->
         <div id="tab-manpower" class="tab-content space-y-8 hidden">
             <section class="section-box">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-5 mb-6">
@@ -290,22 +354,22 @@
                         <div class="mt-3 text-sm font-medium flex items-center text-slate-400" id="trendTotal">-</div>
                     </div>
                     <div class="kpi-card bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-                        <div class="flex justify-between items-start text-slate-500"><span class="text-sm font-semibold">삼성물산</span></div>
+                        <div class="flex justify-between items-start text-slate-500"><span class="text-sm font-bold text-blue-700"><i class="fa-solid fa-industry mr-1.5"></i>삼성물산</span></div>
                         <div class="mt-4 flex items-baseline space-x-1.5"><span id="kpiMulsan" class="text-3xl font-extrabold text-slate-800">0</span><span class="text-sm text-slate-500 font-medium">명</span></div>
                         <div class="mt-3 text-sm font-medium flex items-center" id="trendMulsan">-</div>
                     </div>
                     <div class="kpi-card bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-                        <div class="flex justify-between items-start text-slate-500"><span class="text-sm font-semibold">복합동</span></div>
+                        <div class="flex justify-between items-start text-slate-500"><span class="text-sm font-bold text-indigo-700"><i class="fa-solid fa-building mr-1.5"></i>복합동</span></div>
                         <div class="mt-4 flex items-baseline space-x-1.5"><span id="kpiComplex" class="text-3xl font-extrabold text-slate-800">0</span><span class="text-sm text-slate-500 font-medium">명</span></div>
                         <div class="mt-3 text-sm font-medium flex items-center" id="trendComplex">-</div>
                     </div>
                     <div class="kpi-card bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-                        <div class="flex justify-between items-start text-slate-500"><span class="text-sm font-semibold">그린동</span></div>
+                        <div class="flex justify-between items-start text-slate-500"><span class="text-sm font-bold text-emerald-700"><i class="fa-solid fa-leaf mr-1.5"></i>그린동</span></div>
                         <div class="mt-4 flex items-baseline space-x-1.5"><span id="kpiGreen" class="text-3xl font-extrabold text-slate-800">0</span><span class="text-sm text-slate-500 font-medium">명</span></div>
                         <div class="mt-3 text-sm font-medium flex items-center" id="trendGreen">-</div>
                     </div>
                     <div class="kpi-card bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-                        <div class="flex justify-between items-start text-slate-500"><span class="text-sm font-semibold">변전소</span></div>
+                        <div class="flex justify-between items-start text-slate-500"><span class="text-sm font-bold text-amber-600"><i class="fa-solid fa-bolt mr-1.5"></i>변전소</span></div>
                         <div class="mt-4 flex items-baseline space-x-1.5"><span id="kpiSubstation" class="text-3xl font-extrabold text-slate-800">0</span><span class="text-sm text-slate-500 font-medium">명</span></div>
                         <div class="mt-3 text-sm font-medium flex items-center" id="trendSubstation">-</div>
                     </div>
@@ -345,19 +409,19 @@
                         <p id="avgTotal" class="text-3xl font-extrabold text-slate-800 mt-2.5">0.0<span class="text-sm font-medium text-slate-500 ml-1">명</span></p>
                     </div>
                     <div class="bg-slate-50 rounded-xl p-5 text-center border border-slate-200">
-                        <p class="text-sm text-slate-500 font-semibold">삼성물산 평균</p>
+                        <p class="text-sm text-slate-500 font-semibold"><i class="fa-solid fa-industry mr-1 text-blue-500 opacity-60"></i>삼성물산 평균</p>
                         <p id="avgMulsan" class="text-2xl font-extrabold text-blue-700 mt-2.5">0.0<span class="text-sm font-medium text-slate-500 ml-1">명</span></p>
                     </div>
                     <div class="bg-slate-50 rounded-xl p-5 text-center border border-slate-200">
-                        <p class="text-sm text-slate-500 font-semibold">복합동 평균</p>
+                        <p class="text-sm text-slate-500 font-semibold"><i class="fa-solid fa-building mr-1 text-indigo-500 opacity-60"></i>복합동 평균</p>
                         <p id="avgComplex" class="text-2xl font-extrabold text-indigo-600 mt-2.5">0.0<span class="text-sm font-medium text-slate-500 ml-1">명</span></p>
                     </div>
                     <div class="bg-slate-50 rounded-xl p-5 text-center border border-slate-200">
-                        <p class="text-sm text-slate-500 font-semibold">그린동 평균</p>
+                        <p class="text-sm text-slate-500 font-semibold"><i class="fa-solid fa-leaf mr-1 text-emerald-500 opacity-60"></i>그린동 평균</p>
                         <p id="avgGreen" class="text-2xl font-extrabold text-emerald-600 mt-2.5">0.0<span class="text-sm font-medium text-slate-500 ml-1">명</span></p>
                     </div>
                     <div class="bg-slate-50 rounded-xl p-5 text-center border border-slate-200">
-                        <p class="text-sm text-slate-500 font-semibold">변전소 평균</p>
+                        <p class="text-sm text-slate-500 font-semibold"><i class="fa-solid fa-bolt mr-1 text-amber-500 opacity-60"></i>변전소 평균</p>
                         <p id="avgSubstation" class="text-2xl font-extrabold text-amber-600 mt-2.5">0.0<span class="text-sm font-medium text-slate-500 ml-1">명</span></p>
                     </div>
                 </div>
@@ -410,44 +474,54 @@
             </section>
         </div>
 
+        <!-- ========================================== -->
+        <!-- ⭐ 탭 3: 예상인력 (Expected) -->
+        <!-- ========================================== -->
         <div id="tab-expected" class="tab-content space-y-8 hidden">
             <section class="section-box">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-5 mb-6">
                     <div>
                         <h2 class="text-xl font-bold text-slate-900 flex items-center space-x-2">
                             <span class="h-5 w-1.5 bg-purple-600 rounded-full mr-2"></span>
-                            📅 이번 달 (<span id="exp_tab_month" class="text-purple-600 mx-1"></span>) 예상 인력 요약
+                            📅 예상 인력 요약
                         </h2>
+                    </div>
+                    <div class="flex items-center space-x-2 mt-4 sm:mt-0 bg-slate-100 p-1.5 rounded-xl border border-slate-200 shadow-sm">
+                        <button id="exp_prevMonthBtn" class="bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 shadow-sm w-10 h-10 rounded-lg flex items-center justify-center transition hover:text-purple-600"><i class="fa-solid fa-chevron-left text-base"></i></button>
+                        <div class="relative flex items-center px-4 h-10">
+                            <span id="exp_tab_month_display" class="font-bold text-lg text-purple-700 w-[70px] text-center">YYYY.MM</span>
+                        </div>
+                        <button id="exp_nextMonthBtn" class="bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 shadow-sm w-10 h-10 rounded-lg flex items-center justify-center transition hover:text-purple-600"><i class="fa-solid fa-chevron-right text-base"></i></button>
                     </div>
                 </div>
                 
                 <div class="mb-8">
-                    <h3 class="text-base font-bold text-slate-800 mb-4 ml-1"><i class="fa-solid fa-building mr-2 text-slate-400"></i>시공사별 예상 인력</h3>
+                    <h3 class="text-sm font-bold text-slate-600 mb-3 ml-1"><i class="fa-solid fa-users mr-1.5"></i>시공사별 예상 인력</h3>
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-5">
                         <div class="kpi-card bg-gradient-to-br from-purple-900 to-indigo-800 text-white rounded-xl p-6 shadow-md">
                             <div class="text-sm font-semibold text-purple-200">총 예상 인력 (전체)</div>
                             <div class="mt-3 text-4xl font-extrabold"><span id="exp_tab_total">0</span><span class="text-base font-medium ml-1.5 text-purple-200">명</span></div>
                         </div>
                         <div class="kpi-card bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
-                            <div class="text-sm font-semibold text-slate-500">삼성물산</div>
-                            <div class="mt-3 text-3xl font-extrabold text-blue-700"><span id="exp_tab_mulsan">0</span><span class="text-base font-medium ml-1.5 text-slate-500">명</span></div>
+                            <div class="text-sm font-bold text-blue-700"><i class="fa-solid fa-industry mr-1.5"></i>삼성물산</div>
+                            <div class="mt-3 text-3xl font-extrabold text-slate-800"><span id="exp_tab_mulsan">0</span><span class="text-base font-medium ml-1.5 text-slate-500">명</span></div>
                         </div>
                         <div class="kpi-card bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
-                            <div class="text-sm font-semibold text-slate-500">삼성E&A</div>
-                            <div class="mt-3 text-3xl font-extrabold text-amber-600"><span id="exp_tab_ea">0</span><span class="text-base font-medium ml-1.5 text-slate-500">명</span></div>
+                            <div class="text-sm font-bold text-amber-600"><i class="fa-solid fa-helmet-safety mr-1.5"></i>삼성E&A</div>
+                            <div class="mt-3 text-3xl font-extrabold text-slate-800"><span id="exp_tab_ea">0</span><span class="text-base font-medium ml-1.5 text-slate-500">명</span></div>
                         </div>
                         <div class="kpi-card bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
-                            <div class="text-sm font-semibold text-slate-500">삼성중공업</div>
-                            <div class="mt-3 text-3xl font-extrabold text-rose-600"><span id="exp_tab_heavy">0</span><span class="text-base font-medium ml-1.5 text-slate-500">명</span></div>
+                            <div class="text-sm font-bold text-rose-600"><i class="fa-solid fa-ship mr-1.5"></i>삼성중공업</div>
+                            <div class="mt-3 text-3xl font-extrabold text-slate-800"><span id="exp_tab_heavy">0</span><span class="text-base font-medium ml-1.5 text-slate-500">명</span></div>
                         </div>
                     </div>
                 </div>
 
                 <div>
-                    <h3 class="text-base font-bold text-slate-800 mb-4 ml-1"><i class="fa-solid fa-layer-group mr-2 text-slate-400"></i>Phase별 예상 인력</h3>
+                    <h3 class="text-sm font-bold text-slate-600 mb-3 ml-1"><i class="fa-solid fa-layer-group mr-1.5"></i>Phase별 예상 인력</h3>
                     <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
                         <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-                            <h4 class="text-sm font-extrabold text-slate-800 mb-4 border-b border-slate-100 pb-2">FAB 1</h4>
+                            <h4 class="text-sm font-extrabold text-slate-800 mb-4 border-b border-slate-100 pb-2"><i class="fa-solid fa-industry mr-1.5 text-blue-600"></i>FAB 1</h4>
                             <div class="grid grid-cols-3 sm:grid-cols-6 gap-3">
                                 <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">골조</div><div class="text-lg font-bold text-slate-800 mt-1" id="exp_tab_f1g">0</div></div>
                                 <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph1</div><div class="text-lg font-bold text-slate-800 mt-1" id="exp_tab_f1p1">0</div></div>
@@ -458,7 +532,7 @@
                             </div>
                         </div>
                         <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-                            <h4 class="text-sm font-extrabold text-slate-800 mb-4 border-b border-slate-100 pb-2">FAB 2</h4>
+                            <h4 class="text-sm font-extrabold text-slate-800 mb-4 border-b border-slate-100 pb-2"><i class="fa-solid fa-industry mr-1.5 text-blue-600"></i>FAB 2</h4>
                             <div class="grid grid-cols-3 sm:grid-cols-7 gap-3">
                                 <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">골조</div><div class="text-lg font-bold text-slate-800 mt-1" id="exp_tab_f2g">0</div></div>
                                 <div class="bg-slate-50 p-3 rounded-lg text-center border border-slate-100"><div class="text-xs text-slate-500 font-medium">Ph1</div><div class="text-lg font-bold text-slate-800 mt-1" id="exp_tab_f2p1">0</div></div>
@@ -510,82 +584,100 @@
             </section>
         </div>
 
+        <!-- ========================================== -->
+        <!-- ⭐ 탭 4: 공사 현황 (Progress) -->
+        <!-- ========================================== -->
         <div id="tab-progress" class="tab-content space-y-8 hidden">
+            <!-- FAB -->
             <section class="section-box">
-                <div class="border-b border-slate-200 pb-4 mb-6"><h2 class="text-xl font-bold text-slate-900 flex items-center"><span class="h-5 w-1.5 bg-indigo-600 rounded-full mr-2"></span>FAB 공사 현황</h2></div>
+                <div class="border-b border-slate-200 pb-4 mb-6"><h2 class="text-xl font-bold text-slate-900 flex items-center"><span class="h-5 w-1.5 bg-indigo-600 rounded-full mr-2"></span><i class="fa-solid fa-industry mr-1.5 text-blue-700"></i>FAB 공사 현황</h2></div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                         <div class="flex justify-between items-end mb-2 px-2">
-                            <h3 class="text-lg font-bold text-slate-800">기초</h3>
-                            <div class="text-right"><div><span class="text-2xl font-black text-red-500" id="prog_f_b_act">실적 0%</span> <span class="text-sm font-bold text-blue-500 ml-1.5" id="prog_f_b_pln">계획 0%</span></div><div id="prog_f_b_stat"></div></div>
+                            <div class="flex items-center space-x-2"><h3 class="text-lg font-black text-slate-800">기초</h3><div id="prog_f_b_stat" class="px-2 py-0.5 rounded text-[11px] font-bold"></div></div>
+                            <div class="text-right"><div><span class="text-2xl font-black text-slate-800" id="prog_f_b_act">실적 0%</span> <span class="text-sm font-bold text-blue-500 ml-1.5" id="prog_f_b_pln">계획 0%</span></div></div>
                         </div>
                         <div id="chart_prog_f_b" class="prog-chart-container w-full h-[250px] bg-slate-50 rounded-xl border-slate-200"></div>
                     </div>
                     <div>
                         <div class="flex justify-between items-end mb-2 px-2">
-                            <h3 class="text-lg font-bold text-slate-800">골조</h3>
-                            <div class="text-right"><div><span class="text-2xl font-black text-red-500" id="prog_f_f_act">실적 0%</span> <span class="text-sm font-bold text-blue-500 ml-1.5" id="prog_f_f_pln">계획 0%</span></div><div id="prog_f_f_stat"></div></div>
+                            <div class="flex items-center space-x-2"><h3 class="text-lg font-black text-slate-800">골조</h3><div id="prog_f_f_stat" class="px-2 py-0.5 rounded text-[11px] font-bold"></div></div>
+                            <div class="text-right"><div><span class="text-2xl font-black text-slate-800" id="prog_f_f_act">실적 0%</span> <span class="text-sm font-bold text-blue-500 ml-1.5" id="prog_f_f_pln">계획 0%</span></div></div>
                         </div>
                         <div id="chart_prog_f_f" class="prog-chart-container w-full h-[250px] bg-slate-50 rounded-xl border-slate-200"></div>
                     </div>
                     <div>
                         <div class="flex justify-between items-end mb-2 px-2">
-                            <h3 class="text-lg font-bold text-slate-800">데크</h3>
-                            <div class="text-right"><div><span class="text-2xl font-black text-red-500" id="prog_f_d_act">실적 0%</span> <span class="text-sm font-bold text-blue-500 ml-1.5" id="prog_f_d_pln">계획 0%</span></div><div id="prog_f_d_stat"></div></div>
+                            <div class="flex items-center space-x-2"><h3 class="text-lg font-black text-slate-800">데크</h3><div id="prog_f_d_stat" class="px-2 py-0.5 rounded text-[11px] font-bold"></div></div>
+                            <div class="text-right"><div><span class="text-2xl font-black text-slate-800" id="prog_f_d_act">실적 0%</span> <span class="text-sm font-bold text-blue-500 ml-1.5" id="prog_f_d_pln">계획 0%</span></div></div>
                         </div>
                         <div id="chart_prog_f_d" class="prog-chart-container w-full h-[250px] bg-slate-50 rounded-xl border-slate-200"></div>
                     </div>
                 </div>
             </section>
+            <!-- 복합동 -->
             <section class="section-box">
-                <div class="border-b border-slate-200 pb-4 mb-6"><h2 class="text-xl font-bold text-slate-900 flex items-center"><span class="h-5 w-1.5 bg-blue-600 rounded-full mr-2"></span>복합동 공사 현황</h2></div>
+                <div class="border-b border-slate-200 pb-4 mb-6"><h2 class="text-xl font-bold text-slate-900 flex items-center"><span class="h-5 w-1.5 bg-blue-600 rounded-full mr-2"></span><i class="fa-solid fa-building mr-1.5 text-indigo-700"></i>복합동 공사 현황</h2></div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                         <div class="flex justify-between items-end mb-2 px-2">
-                            <h3 class="text-lg font-bold text-slate-800">기초</h3>
-                            <div class="text-right"><div><span class="text-2xl font-black text-red-500" id="prog_c_b_act">실적 0%</span> <span class="text-sm font-bold text-blue-500 ml-1.5" id="prog_c_b_pln">계획 0%</span></div><div id="prog_c_b_stat"></div></div>
+                            <div class="flex items-center space-x-2"><h3 class="text-lg font-black text-slate-800">기초</h3><div id="prog_c_b_stat" class="px-2 py-0.5 rounded text-[11px] font-bold"></div></div>
+                            <div class="text-right"><div><span class="text-2xl font-black text-slate-800" id="prog_c_b_act">실적 0%</span> <span class="text-sm font-bold text-blue-500 ml-1.5" id="prog_c_b_pln">계획 0%</span></div></div>
                         </div>
                         <div id="chart_prog_c_b" class="prog-chart-container w-full h-[250px] bg-slate-50 rounded-xl border-slate-200"></div>
                     </div>
                     <div>
                         <div class="flex justify-between items-end mb-2 px-2">
-                            <h3 class="text-lg font-bold text-slate-800">철골</h3>
-                            <div class="text-right"><div><span class="text-2xl font-black text-red-500" id="prog_c_s_act">실적 0%</span> <span class="text-sm font-bold text-blue-500 ml-1.5" id="prog_c_s_pln">계획 0%</span></div><div id="prog_c_s_stat"></div></div>
+                            <div class="flex items-center space-x-2"><h3 class="text-lg font-black text-slate-800">철골</h3><div id="prog_c_s_stat" class="px-2 py-0.5 rounded text-[11px] font-bold"></div></div>
+                            <div class="text-right"><div><span class="text-2xl font-black text-slate-800" id="prog_c_s_act">실적 0%</span> <span class="text-sm font-bold text-blue-500 ml-1.5" id="prog_c_s_pln">계획 0%</span></div></div>
                         </div>
                         <div id="chart_prog_c_s" class="prog-chart-container w-full h-[250px] bg-slate-50 rounded-xl border-slate-200"></div>
                     </div>
                     <div>
                         <div class="flex justify-between items-end mb-2 px-2">
-                            <h3 class="text-lg font-bold text-slate-800">PC</h3>
-                            <div class="text-right"><div><span class="text-2xl font-black text-red-500" id="prog_c_p_act">실적 0%</span> <span class="text-sm font-bold text-blue-500 ml-1.5" id="prog_c_p_pln">계획 0%</span></div><div id="prog_c_p_stat"></div></div>
+                            <div class="flex items-center space-x-2"><h3 class="text-lg font-black text-slate-800">PC</h3><div id="prog_c_p_stat" class="px-2 py-0.5 rounded text-[11px] font-bold"></div></div>
+                            <div class="text-right"><div><span class="text-2xl font-black text-slate-800" id="prog_c_p_act">실적 0%</span> <span class="text-sm font-bold text-blue-500 ml-1.5" id="prog_c_p_pln">계획 0%</span></div></div>
                         </div>
                         <div id="chart_prog_c_p" class="prog-chart-container w-full h-[250px] bg-slate-50 rounded-xl border-slate-200"></div>
                     </div>
                 </div>
             </section>
+            <!-- 그린동 & 변전소 -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <section class="section-box">
-                    <div class="border-b border-slate-200 pb-4 mb-6"><h2 class="text-xl font-bold text-slate-900 flex items-center"><span class="h-5 w-1.5 bg-emerald-500 rounded-full mr-2"></span>그린동 공사 현황</h2></div>
+                    <div class="border-b border-slate-200 pb-4 mb-6"><h2 class="text-xl font-bold text-slate-900 flex items-center"><span class="h-5 w-1.5 bg-emerald-500 rounded-full mr-2"></span><i class="fa-solid fa-leaf mr-1.5 text-emerald-700"></i>그린동 공사 현황</h2></div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <div class="flex justify-between items-end mb-2 px-2"><h3 class="text-lg font-bold text-slate-800">PC</h3><div class="text-right"><div><span class="text-2xl font-black text-red-500" id="prog_g_p_act">실적 0%</span> <span class="text-sm font-bold text-blue-500 ml-1.5" id="prog_g_p_pln">계획 0%</span></div><div id="prog_g_p_stat"></div></div></div>
+                            <div class="flex justify-between items-end mb-2 px-2">
+                                <div class="flex items-center space-x-2"><h3 class="text-lg font-black text-slate-800">PC</h3><div id="prog_g_p_stat" class="px-2 py-0.5 rounded text-[11px] font-bold"></div></div>
+                                <div class="text-right"><div><span class="text-2xl font-black text-slate-800" id="prog_g_p_act">실적 0%</span> <span class="text-sm font-bold text-blue-500 ml-1.5" id="prog_g_p_pln">계획 0%</span></div></div>
+                            </div>
                             <div id="chart_prog_g_p" class="prog-chart-container w-full h-[250px] bg-slate-50 rounded-xl border-slate-200"></div>
                         </div>
                         <div>
-                            <div class="flex justify-between items-end mb-2 px-2"><h3 class="text-lg font-bold text-slate-800">RC</h3><div class="text-right"><div><span class="text-2xl font-black text-red-500" id="prog_g_r_act">실적 0%</span> <span class="text-sm font-bold text-blue-500 ml-1.5" id="prog_g_r_pln">계획 0%</span></div><div id="prog_g_r_stat"></div></div></div>
+                            <div class="flex justify-between items-end mb-2 px-2">
+                                <div class="flex items-center space-x-2"><h3 class="text-lg font-black text-slate-800">RC</h3><div id="prog_g_r_stat" class="px-2 py-0.5 rounded text-[11px] font-bold"></div></div>
+                                <div class="text-right"><div><span class="text-2xl font-black text-slate-800" id="prog_g_r_act">실적 0%</span> <span class="text-sm font-bold text-blue-500 ml-1.5" id="prog_g_r_pln">계획 0%</span></div></div>
+                            </div>
                             <div id="chart_prog_g_r" class="prog-chart-container w-full h-[250px] bg-slate-50 rounded-xl border-slate-200"></div>
                         </div>
                     </div>
                 </section>
                 <section class="section-box">
-                    <div class="border-b border-slate-200 pb-4 mb-6"><h2 class="text-xl font-bold text-slate-900 flex items-center"><span class="h-5 w-1.5 bg-amber-500 rounded-full mr-2"></span>변전소 공사 현황</h2></div>
+                    <div class="border-b border-slate-200 pb-4 mb-6"><h2 class="text-xl font-bold text-slate-900 flex items-center"><span class="h-5 w-1.5 bg-amber-500 rounded-full mr-2"></span><i class="fa-solid fa-bolt mr-1.5 text-amber-600"></i>변전소 공사 현황</h2></div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <div class="flex justify-between items-end mb-2 px-2"><h3 class="text-lg font-bold text-slate-800">PC</h3><div class="text-right"><div><span class="text-2xl font-black text-red-500" id="prog_s_p_act">실적 0%</span> <span class="text-sm font-bold text-blue-500 ml-1.5" id="prog_s_p_pln">계획 0%</span></div><div id="prog_s_p_stat"></div></div></div>
+                            <div class="flex justify-between items-end mb-2 px-2">
+                                <div class="flex items-center space-x-2"><h3 class="text-lg font-black text-slate-800">PC</h3><div id="prog_s_p_stat" class="px-2 py-0.5 rounded text-[11px] font-bold"></div></div>
+                                <div class="text-right"><div><span class="text-2xl font-black text-slate-800" id="prog_s_p_act">실적 0%</span> <span class="text-sm font-bold text-blue-500 ml-1.5" id="prog_s_p_pln">계획 0%</span></div></div>
+                            </div>
                             <div id="chart_prog_s_p" class="prog-chart-container w-full h-[250px] bg-slate-50 rounded-xl border-slate-200"></div>
                         </div>
                         <div>
-                            <div class="flex justify-between items-end mb-2 px-2"><h3 class="text-lg font-bold text-slate-800">RC</h3><div class="text-right"><div><span class="text-2xl font-black text-red-500" id="prog_s_r_act">실적 0%</span> <span class="text-sm font-bold text-blue-500 ml-1.5" id="prog_s_r_pln">계획 0%</span></div><div id="prog_s_r_stat"></div></div></div>
+                            <div class="flex justify-between items-end mb-2 px-2">
+                                <div class="flex items-center space-x-2"><h3 class="text-lg font-black text-slate-800">RC</h3><div id="prog_s_r_stat" class="px-2 py-0.5 rounded text-[11px] font-bold"></div></div>
+                                <div class="text-right"><div><span class="text-2xl font-black text-slate-800" id="prog_s_r_act">실적 0%</span> <span class="text-sm font-bold text-blue-500 ml-1.5" id="prog_s_r_pln">계획 0%</span></div></div>
+                            </div>
                             <div id="chart_prog_s_r" class="prog-chart-container w-full h-[250px] bg-slate-50 rounded-xl border-slate-200"></div>
                         </div>
                     </div>
@@ -593,11 +685,18 @@
             </div>
         </div>
 
+        <!-- ========================================== -->
+        <!-- 탭 5~7: 개발 중 알림 화면 -->
+        <!-- ========================================== -->
         <div id="tab-schedule" class="tab-content hidden"><div class="bg-white rounded-3xl p-32 text-center shadow-sm border border-slate-200"><div class="inline-block p-6 bg-indigo-50 rounded-full mb-6 text-indigo-500"><i class="fa-solid fa-calendar-plus text-6xl"></i></div><h3 class="text-2xl font-black text-slate-800 mb-3">개발 중인 메뉴입니다</h3><p class="text-base text-slate-500 font-medium">프로젝트 SCHEDULE 연동 모듈을 구축하고 있습니다.</p></div></div>
         <div id="tab-ut" class="tab-content hidden"><div class="bg-white rounded-3xl p-32 text-center shadow-sm border border-slate-200"><div class="inline-block p-6 bg-emerald-50 rounded-full mb-6 text-emerald-500"><i class="fa-solid fa-power-off text-6xl"></i></div><h3 class="text-2xl font-black text-slate-800 mb-3">개발 중인 메뉴입니다</h3><p class="text-base text-slate-500 font-medium">T/O 현황 연동 모듈을 구축하고 있습니다.</p></div></div>
         <div id="tab-handover" class="tab-content hidden"><div class="bg-white rounded-3xl p-32 text-center shadow-sm border border-slate-200"><div class="inline-block p-6 bg-rose-50 rounded-full mb-6 text-rose-500"><i class="fa-solid fa-handshake-angle text-6xl"></i></div><h3 class="text-2xl font-black text-slate-800 mb-3">개발 중인 메뉴입니다</h3><p class="text-base text-slate-500 font-medium">인수인계 현황 연동 모듈을 구축하고 있습니다.</p></div></div>
 
     </main>
+
+    <footer class="bg-white border-t border-slate-200 mt-12 py-8 text-center text-sm font-medium text-slate-400">
+        <p>© 2026 P5 FAB1 Infrastructure Technology Center. All Rights Reserved.</p>
+    </footer>
 
     <script>
         // =====================================================================
@@ -652,7 +751,7 @@
 
         // ======================= [전역 스크립트 설정] =======================
         let globalData = [], expData = [];
-        let selectedDayIdx = -1, avgEndIdx = -1;
+        let selectedDayIdx = -1, avgEndIdx = -1, selectedExpMonthIdx = -1;
         let myChart = null, pieChart = null, expChart = null, pzInstance = null; 
         let progressCharts = [];
         let expCurrentView = 'phase';
@@ -665,19 +764,34 @@
             lineStyle: { color: '#ef4444', type: 'dashed', width: 2 }
         };
 
+        function getTrafficLightHTML(diff) {
+            let r='bg-slate-300', y='bg-slate-300', g='bg-slate-300';
+            let activeClass = '';
+            if(diff >= 0) {
+                g = 'bg-green-500 shadow-[0_0_8px_#22c55e]'; activeClass = 'tl-green active';
+            } else if(diff > -1.0) {
+                y = 'bg-yellow-400 shadow-[0_0_8px_#facc15]'; activeClass = 'tl-yellow active';
+            } else {
+                r = 'bg-red-500 shadow-[0_0_8px_#ef4444]'; activeClass = 'tl-red active';
+            }
+            return `<div class="traffic-light">
+                <div class="tl-bulb ${r === 'bg-slate-300' ? '' : activeClass}"></div>
+                <div class="tl-bulb ${y === 'bg-slate-300' ? '' : activeClass}"></div>
+                <div class="tl-bulb ${g === 'bg-slate-300' ? '' : activeClass}"></div>
+            </div>`;
+        }
+
         function safeResize(chartInstance) {
             try { if (chartInstance && typeof chartInstance.resize === 'function') chartInstance.resize(); } catch(e) {}
         }
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => {
-                el.classList.add('hidden');
-                el.classList.remove('block');
+                el.classList.add('hidden'); el.classList.remove('block');
             });
             const targetTab = document.getElementById(tabId);
             if (targetTab) {
-                targetTab.classList.remove('hidden');
-                targetTab.classList.add('block');
+                targetTab.classList.remove('hidden'); targetTab.classList.add('block');
             }
 
             document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -692,7 +806,7 @@
                 if(tabId === 'tab-manpower') { safeResize(myChart); safeResize(pieChart); }
                 if(tabId === 'tab-expected') { safeResize(expChart); }
                 if(tabId === 'tab-progress') { progressCharts.forEach(c => safeResize(c)); }
-            }, 100); 
+            }, 50); 
         }
         
         function resetAerialZoom() { if(pzInstance) pzInstance.reset(); }
@@ -710,6 +824,7 @@
             const bindClick = (id, fn) => { const el = document.getElementById(id); if(el) el.addEventListener('click', fn); }
             const bindChange = (id, fn) => { const el = document.getElementById(id); if(el) el.addEventListener('change', fn); }
 
+            // 인력/요약 날짜 조작
             bindClick('prevDayBtn', () => { if(selectedDayIdx > 0) { selectedDayIdx--; updateBothDailyDashboards(); } });
             bindClick('nextDayBtn', () => { if(selectedDayIdx < globalData.length - 1) { selectedDayIdx++; updateBothDailyDashboards(); } });
             bindClick('sum_prevDayBtn', (e) => { e.stopPropagation(); if(selectedDayIdx > 0) { selectedDayIdx--; updateBothDailyDashboards(); } });
@@ -726,6 +841,7 @@
             bindChange('sum_dailyDatePicker', handleDateChange);
             bindClick('sum_dailyDatePicker', (e) => e.stopPropagation());
 
+            // 5일평균 조작
             bindClick('prevAvgBtn', () => { if(avgEndIdx > 4) { avgEndIdx--; updateMovingAverage(); } });
             bindClick('nextAvgBtn', () => { if(avgEndIdx < globalData.length - 1) { avgEndIdx++; updateMovingAverage(); } });
             bindChange('avgDatePicker', (e) => {
@@ -733,9 +849,21 @@
                 if(idx !== -1) {
                     if(idx < 4) { alert('최소 5일치 데이터가 필요합니다.'); e.target.value = globalData[avgEndIdx].date; } 
                     else { avgEndIdx = idx; updateMovingAverage(); }
-                } else { alert('해당 날짜 데이터가 없습니다.'); e.target.value = globalData[avgEndIdx].date; }
+                } else { alert('데이터가 없습니다.'); e.target.value = globalData[avgEndIdx].date; }
             });
 
+            // 예상인력 월 조작
+            const moveExpMonth = (dir) => {
+                if(dir==='prev' && selectedExpMonthIdx > 0) selectedExpMonthIdx--;
+                else if(dir==='next' && selectedExpMonthIdx < expData.length-1) selectedExpMonthIdx++;
+                updateExpectedDashboards();
+            };
+            bindClick('sum_prevExpBtn', (e) => { e.stopPropagation(); moveExpMonth('prev'); });
+            bindClick('sum_nextExpBtn', (e) => { e.stopPropagation(); moveExpMonth('next'); });
+            bindClick('exp_prevMonthBtn', () => moveExpMonth('prev'));
+            bindClick('exp_nextMonthBtn', () => moveExpMonth('next'));
+
+            // 인력 차트 버튼
             document.querySelectorAll('.chart-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     document.querySelectorAll('.chart-btn').forEach(b => {
@@ -761,7 +889,7 @@
             });
         });
 
-        // ========================== [인력 및 진행률 탭 로직] ==========================
+        // ========================== [인력 및 진행률 로직] ==========================
         function processRawTextData(text) {
             try {
                 const lines = text.trim().split('\n');
@@ -795,41 +923,38 @@
                     renderAdvancedMetrics();
                     initProgressCharts();
                 }
-            } catch(e) { console.error("인력 데이터 처리 오류: ", e); }
+            } catch(e) { console.error("인력/진행률 파싱 오류: ", e); }
         }
 
         const calcPrc = (val, tot) => tot > 0 ? ((val/tot)*100).toFixed(1) : "0.0";
 
-        // 진행률 업데이트 헬퍼
         const updateProg = (prefix, k, act, pln) => {
             const actEl = document.getElementById(prefix + k + '_act');
             const plnEl = document.getElementById(prefix + k + '_pln');
             const statEl = document.getElementById(prefix + k + '_stat');
-            const chartEl = document.getElementById('chart_' + prefix + k);
+            const lightEl = document.getElementById(prefix + k + '_light');
+            const chartEl = document.getElementById('chart_prog_' + k);
 
-            if(actEl) actEl.innerText = `실적 ${act.toFixed(1)}%`;
-            if(plnEl) plnEl.innerText = `계획 ${pln.toFixed(1)}%`;
+            if(actEl) actEl.innerText = prefix==='prog_' ? `실적 ${act.toFixed(1)}%` : `${act.toFixed(1)}%`;
+            if(plnEl) plnEl.innerText = prefix==='prog_' ? `계획 ${pln.toFixed(1)}%` : `${pln.toFixed(1)}%`;
 
             const diff = act - pln;
-            let statText = "", light = "", borderColor = "border-slate-200";
+            let statText = "", borderColor = "border-slate-200", badgeClass="";
 
             if(diff >= 0) {
-                statText = diff === 0 ? "일치" : `${diff.toFixed(1)}% 선행중`;
-                light = "🟢"; borderColor = "border-emerald-500";
+                statText = diff === 0 ? "일치" : `+${diff.toFixed(1)}% 선행중`;
+                borderColor = "border-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.15)]";
+                badgeClass = "bg-emerald-50 text-emerald-600";
             } else {
                 statText = `${Math.abs(diff).toFixed(1)}% 지연중`;
-                if(diff > -1.0) { light = "🟡"; borderColor = "border-amber-400"; } 
-                else { light = "🔴"; borderColor = "border-red-500"; }
+                if(diff > -1.0) { borderColor = "border-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.15)]"; badgeClass = "bg-amber-50 text-amber-600"; } 
+                else { borderColor = "border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.15)]"; badgeClass = "bg-red-50 text-red-600"; }
             }
 
-            if(statEl) {
-                if(prefix === 'sum_') {
-                    statEl.innerHTML = `${light} ${statText}`;
-                    statEl.className = `text-xs font-semibold mt-0.5 ${diff >= 0 ? 'text-emerald-600' : (diff > -1.0 ? 'text-amber-500' : 'text-red-500')}`;
-                } else {
-                    statEl.innerHTML = statText;
-                    statEl.className = `text-sm font-bold mt-1 ${diff >= 0 ? 'text-emerald-600' : (diff > -1.0 ? 'text-amber-500' : 'text-red-500')}`;
-                }
+            if(lightEl && prefix === 'sum_') { lightEl.innerHTML = getTrafficLightHTML(diff); }
+            if(statEl && prefix === 'prog_') {
+                statEl.innerText = statText;
+                statEl.className = `px-2 py-0.5 rounded text-[11px] font-bold ${badgeClass}`;
             }
             if(chartEl && prefix === 'prog_') {
                 chartEl.className = `prog-chart-container w-full h-[250px] bg-slate-50 rounded-xl ${borderColor}`;
@@ -844,12 +969,10 @@
             const renderDash = (prefix) => {
                 const dp = document.getElementById(prefix + 'dailyDatePicker');
                 if(dp) dp.value = cur.date;
-                
                 ['Total', 'Mulsan', 'Complex', 'Green', 'Substation'].forEach(key => { 
                     const el = document.getElementById(prefix + 'kpi' + key);
                     if(el) el.innerText = cur[key.toLowerCase()].toLocaleString(); 
                 });
-                
                 const setTrend = (id, curV, prevV) => {
                     const el = document.getElementById(id);
                     if(!el) return;
@@ -868,7 +991,6 @@
 
             renderDash(''); renderDash('sum_');
 
-            // 근무형태
             const wtTotal = cur.day + cur.ext + cur.night + cur.s1 + cur.s2 + cur.over;
             ['Day','Ext','Night','S1','S2','Over'].forEach(k => { 
                 const txt = `${cur[k.toLowerCase()].toLocaleString()}명 <span class="text-slate-400 font-normal ml-0.5">(${calcPrc(cur[k.toLowerCase()], wtTotal)}%)</span>`;
@@ -876,12 +998,10 @@
                 if(document.getElementById('sum_wt'+k)) document.getElementById('sum_wt'+k).innerHTML = txt;
             });
 
-            // [진행률] 최신값 고정
+            // [진행률 업데이트 - 무조건 최신값]
             const latest = globalData[globalData.length - 1];
             if(document.getElementById('sum_prog_date')) document.getElementById('sum_prog_date').innerText = `(${latest.date} 기준)`;
-            
-            const pKeys = ['p_f_b','p_f_f','p_f_d','p_c_b','p_c_s','p_c_p','p_g_p','p_g_r','p_s_p','p_s_r'];
-            pKeys.forEach(k => {
+            ['p_f_b','p_f_f','p_f_d','p_c_b','p_c_s','p_c_p','p_g_p','p_g_r','p_s_p','p_s_r'].forEach(k => {
                 updateProg('sum_', k, latest[k+'_act'], latest[k+'_pln']);
                 updateProg('prog_', k, latest[k+'_act'], latest[k+'_pln']);
             });
@@ -954,7 +1074,7 @@
                     tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
                     grid: { left: '4%', right: '4%', top: '10%', bottom: '15%', containLabel: true },
                     xAxis: { type: 'category', boundaryGap: false, data: dates, splitLine: { show: true, lineStyle: { color: '#e2e8f0', type: 'dashed' } } },
-                    yAxis: { type: 'value', max: 100, splitLine: { lineStyle: { color: '#f1f5f9' } } },
+                    yAxis: { type: 'value', max: 100, splitLine: { lineStyle: { color: '#f8fafc' } } },
                     series: [
                         { name: '실적', type: 'line', itemStyle: { color: '#ef4444' }, lineStyle: { width: 3 }, showSymbol: false, data: globalData.map(d=>d[actKey]) },
                         { name: '계획', type: 'line', itemStyle: { color: '#3b82f6' }, lineStyle: { width: 2, type: 'dashed' }, showSymbol: false, data: globalData.map(d=>d[plnKey]) }
@@ -1031,30 +1151,38 @@
                 }
 
                 if(expData.length > 0) {
-                    let currentMonthRow = expData.find(d => d.month.includes('05'));
-                    if(!currentMonthRow) currentMonthRow = expData[expData.length-1];
-
-                    const renderExpSum = (prefix) => {
-                        if(document.getElementById(prefix+'month')) document.getElementById(prefix+'month').innerText = currentMonthRow.month;
-                        if(document.getElementById(prefix+'total')) document.getElementById(prefix+'total').innerText = currentMonthRow.total.toLocaleString();
-                        if(document.getElementById(prefix+'mulsan')) document.getElementById(prefix+'mulsan').innerText = currentMonthRow.mulsan.toLocaleString();
-                        if(document.getElementById(prefix+'ea')) document.getElementById(prefix+'ea').innerText = currentMonthRow.ea.toLocaleString();
-                        if(document.getElementById(prefix+'heavy')) document.getElementById(prefix+'heavy').innerText = currentMonthRow.heavy.toLocaleString();
-                        
-                        ['f1g','f1p1','f1p2','f1p3','f1p4','f1p5','f2g','f2p1','f2p2','f2p3','f2p4','f2p5','f2p6'].forEach(k => {
-                            const el = document.getElementById(prefix + k);
-                            if(el) el.innerText = currentMonthRow[k].toLocaleString();
-                        });
-                    };
+                    selectedExpMonthIdx = expData.findIndex(d => d.month.includes('05')); // 테스트용 5월 지정
+                    if(selectedExpMonthIdx === -1) selectedExpMonthIdx = expData.length-1;
                     
-                    renderExpSum('sum_exp_'); renderExpSum('exp_tab_');
+                    updateExpectedDashboards();
 
                     if(document.getElementById('expectedChartContainer')) {
                         expChart = echarts.init(document.getElementById('expectedChartContainer'));
                         renderExpectedChart('phase');
                     }
                 }
-            } catch(e) { console.error("예상인력 데이터 에러: ", e); }
+            } catch(e) { console.error("예상인력 파싱 에러: ", e); }
+        }
+
+        function updateExpectedDashboards() {
+            const currentMonthRow = expData[selectedExpMonthIdx];
+            if(!currentMonthRow) return;
+
+            const renderExpSum = (prefix) => {
+                if(document.getElementById(prefix+'month')) document.getElementById(prefix+'month').innerText = currentMonthRow.month;
+                if(document.getElementById(prefix+'month_display')) document.getElementById(prefix+'month_display').innerText = currentMonthRow.month;
+                if(document.getElementById(prefix+'total')) document.getElementById(prefix+'total').innerText = currentMonthRow.total.toLocaleString();
+                if(document.getElementById(prefix+'mulsan')) document.getElementById(prefix+'mulsan').innerText = currentMonthRow.mulsan.toLocaleString();
+                if(document.getElementById(prefix+'ea')) document.getElementById(prefix+'ea').innerText = currentMonthRow.ea.toLocaleString();
+                if(document.getElementById(prefix+'heavy')) document.getElementById(prefix+'heavy').innerText = currentMonthRow.heavy.toLocaleString();
+                
+                ['f1g','f1p1','f1p2','f1p3','f1p4','f1p5','f2g','f2p1','f2p2','f2p3','f2p4','f2p5','f2p6'].forEach(k => {
+                    const el = document.getElementById(prefix + k);
+                    if(el) el.innerText = currentMonthRow[k].toLocaleString();
+                });
+            };
+            
+            renderExpSum('sum_exp_'); renderExpSum('exp_tab_');
         }
 
         function renderExpectedChart(viewType) {
